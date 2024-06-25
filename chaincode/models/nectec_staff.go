@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-type TransactionRegulator struct {
+type TransactionNectecStaff struct {
 	Id        string    `json:"id"`
 	CertId    string    `json:"certId"`
 	Owner     string    `json:"owner"`
@@ -11,20 +11,21 @@ type TransactionRegulator struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-type FilterGetAllRegulator struct {
+type FilterGetAllNectecStaff struct {
 	Skip  int `json:"skip"`
 	Limit int `json:"limit"`
 }
 
-type RegulatorTransactionResponse struct {
+type NectecStaffTransactionResponse struct {
 	Id        string    `json:"id"`
 	CertId    string    `json:"certId"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-type RegulatorGetAllResponse struct {
+type GetAllNectecStaffResponse struct {
 	Data  string                `json:"data"`
-	Obj   []*RegulatorTransactionResponse `json:"obj"`
+	Obj   []*NectecStaffTransactionResponse `json:"obj"`
 	Total int                   `json:"total"`
 }
+

@@ -2,29 +2,37 @@ package models
 
 import "time"
 
-type TransactionRegulator struct {
+type TransactionExporter struct {
 	Id        string    `json:"id"`
 	CertId    string    `json:"certId"`
 	Owner     string    `json:"owner"`
+	PlantType     string    `json:"plantType"`
+	Name     string    `json:"name"`
+	Address     string    `json:"address"`
+	District     string    `json:"district"`
+	Province     string    `json:"province"`
+	Email     string    `json:"email"`
+	IssueDate     string    `json:"issueDate"`
+	ExpiredDate     string    `json:"expiredDate"`
 	OrgName   string    `json:"orgName"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-type FilterGetAllRegulator struct {
+type ExporterFilterGetAll struct {
 	Skip  int `json:"skip"`
 	Limit int `json:"limit"`
 }
 
-type RegulatorTransactionResponse struct {
+type ExporterTransactionResponse struct {
 	Id        string    `json:"id"`
 	CertId    string    `json:"certId"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-type RegulatorGetAllResponse struct {
+type ExporterGetAllResponse struct {
 	Data  string                `json:"data"`
-	Obj   []*RegulatorTransactionResponse `json:"obj"`
+	Obj   []*ExporterTransactionResponse `json:"obj"`
 	Total int                   `json:"total"`
 }
