@@ -51,6 +51,7 @@ func (s *SmartContract) CreateFarmerProfile(
 		UpdatedAt: CreatedAt,
 		CreatedAt: CreatedAt,
 		FarmerGaps: input.FarmerGaps,
+		DocType: models.Farmer,
 	}
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
@@ -325,6 +326,7 @@ func (s *SmartContract) CreateFarmerFromCsv(
 			OrgName:   orgName,
 			UpdatedAt: input.CreatedAt,
 			CreatedAt: input.UpdatedAt,
+			DocType: models.Farmer,
 		}
 
 		assetJSON, err := json.Marshal(asset)

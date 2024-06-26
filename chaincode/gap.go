@@ -393,6 +393,7 @@ func (s *SmartContract) CreateGapCsv(
 			FarmerID:    input.FarmerID,
 			Owner:       clientIDGap,
 			OrgName:     orgNameGap,
+			DocType:     models.Gap,
 		}
 		assetJSON, err := json.Marshal(assetGap)
 		if err != nil {

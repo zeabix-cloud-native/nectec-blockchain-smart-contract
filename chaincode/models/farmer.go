@@ -10,6 +10,7 @@ type TransactionFarmer struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 	CreatedAt time.Time `json:"createdAt"`
 	FarmerGaps []FarmerGap `json:"farmerGaps"`
+	DocType DocType `json:"docType"`
 }
 
 type FilterGetAllFarmer struct {

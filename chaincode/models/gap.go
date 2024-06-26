@@ -19,6 +19,7 @@ type TransactionGap struct {
 	FarmerID    string    `json:"farmerId"`
 	Owner       string    `json:"owner"`
 	OrgName     string    `json:"orgName"`
+	DocType     DocType   `json:"docType"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 	CreatedAt   time.Time `json:"createdAt"`
 }
