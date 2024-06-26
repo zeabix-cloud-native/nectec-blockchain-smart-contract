@@ -10,11 +10,7 @@ import (
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/utils"
 )
 
-type GapContract struct {
-    models.SmartContract
-}
-
-func (s *GapContract) CreateGAP(
+func (s *SmartContract) CreateGAP(
 	ctx contractapi.TransactionContextInterface,
 	args string,
 ) error {
@@ -66,7 +62,7 @@ func (s *GapContract) CreateGAP(
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
-func (s *GapContract) UpdateGap(ctx contractapi.TransactionContextInterface, args string) error {
+func (s *SmartContract) UpdateGap(ctx contractapi.TransactionContextInterface, args string) error {
 
 	entityGap := models.TransactionGap{}
 	inputInterface, err := utils.Unmarshal(args, entityGap)
@@ -100,7 +96,7 @@ func (s *GapContract) UpdateGap(ctx contractapi.TransactionContextInterface, arg
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
-func (s *GapContract) ReadGap(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionGap, error) {
+func (s *SmartContract) ReadGap(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionGap, error) {
 
 	assetJSON, err := ctx.GetStub().GetState(id)
 	if err != nil {
@@ -120,7 +116,7 @@ func (s *GapContract) ReadGap(ctx contractapi.TransactionContextInterface, id st
 }
 
 
-func (s *GapContract) DeleteGap(ctx contractapi.TransactionContextInterface, id string) error {
+func (s *SmartContract) DeleteGap(ctx contractapi.TransactionContextInterface, id string) error {
 	assetGap, err := s.ReadGap(ctx, id)
 	utils.HandleError(err)
 
@@ -134,7 +130,7 @@ func (s *GapContract) DeleteGap(ctx contractapi.TransactionContextInterface, id 
 	return ctx.GetStub().DelState(id)
 }
 
-func (s *GapContract) GetGapByFarmerID(ctx contractapi.TransactionContextInterface, farmerId string) (*models.GetGapByCertIdResponse, error) {
+func (s *SmartContract) GetGapByFarmerID(ctx contractapi.TransactionContextInterface, farmerId string) (*models.GetGapByCertIdResponse, error) {
 	// Get the asset using farmerId 
 	queryKeyFarmer := fmt.Sprintf(`{"selector":{"farmerId":"%s"}}`, farmerId)
 
@@ -171,7 +167,8 @@ func (s *GapContract) GetGapByFarmerID(ctx contractapi.TransactionContextInterfa
 	}, nil
 }
 
-func (s *GapContract) GetGapByCertID(ctx contractapi.TransactionContextInterface, certID string) (*models.GetGapByCertIdResponse, error) {
+
+func (s *SmartContract) GetGapByCertID(ctx contractapi.TransactionContextInterface, certID string) (*models.GetGapByCertIdResponse, error) {
 	// Get the asset using CertID
 	queryKeyGap := fmt.Sprintf(`{"selector":{"certId":"%s"}}`, certID)
 
@@ -211,7 +208,7 @@ func (s *GapContract) GetGapByCertID(ctx contractapi.TransactionContextInterface
 	}, nil
 }
 
-func (s *GapContract) GetAllGAP(ctx contractapi.TransactionContextInterface, args string) (*models.GetAllGapResponse, error) {
+func (s *SmartContract) GetAllGAP(ctx contractapi.TransactionContextInterface, args string) (*models.GetAllGapResponse, error) {
 
 	entityGetAllGap := models.FilterGetAllGap{}
 	interfaceGap, err := utils.Unmarshal(args, entityGetAllGap)
@@ -255,7 +252,7 @@ func (s *GapContract) GetAllGAP(ctx contractapi.TransactionContextInterface, arg
 	}, nil
 }
 
-func (s *GapContract) FilterGap(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionGap, error) {
+func (s *SmartContract) FilterGap(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionGap, error) {
 	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
 	if err != nil {
 		return nil, err
@@ -292,7 +289,7 @@ func (s *GapContract) FilterGap(ctx contractapi.TransactionContextInterface, key
 	return assetGap, nil
 }
 
-func (s *GapContract) UpdateMultipleGap(
+func (s *SmartContract) UpdateMultipleGap(
 	ctx contractapi.TransactionContextInterface,
 	args string,
 ) error {
@@ -349,7 +346,7 @@ func (s *GapContract) UpdateMultipleGap(
 	return nil
 }
 
-func (s *GapContract) CreateGapCsv(
+func (s *SmartContract) CreateGapCsv(
 	ctx contractapi.TransactionContextInterface,
 	args string,
 ) error {

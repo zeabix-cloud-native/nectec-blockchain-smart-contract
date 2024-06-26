@@ -6,18 +6,18 @@ import (
 	"sort"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/config"
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/utils"
 )
 
-type RegulatorContract struct {
-    models.SmartContract
-}
-
-func (s RegulatorContract) CreateRegulatorProfile(
+func (s SmartContract) CreateRegulatorProfile(
 	ctx contractapi.TransactionContextInterface,
 	args string,
 ) error {
+	envVar := config.GetEnvVar()
+    fmt.Println("MY_ENV_VAR:", envVar)
+
     entityRegulator := models.TransactionRegulator{}
     inputInterface, err := utils.Unmarshal(args, entityRegulator)
 	if err != nil {
@@ -55,7 +55,7 @@ func (s RegulatorContract) CreateRegulatorProfile(
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
-func (s RegulatorContract) UpdateRegulatorProfile(ctx contractapi.TransactionContextInterface,
+func (s SmartContract) UpdateRegulatorProfile(ctx contractapi.TransactionContextInterface,
 	args string) error {
 
 	entityRegulator := models.TransactionRegulator{}
@@ -85,7 +85,7 @@ func (s RegulatorContract) UpdateRegulatorProfile(ctx contractapi.TransactionCon
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
-func (s *RegulatorContract) ReadRegulatorProfile(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionRegulator, error) {
+func (s *SmartContract) ReadRegulatorProfile(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionRegulator, error) {
 
 	assetJSON, err := ctx.GetStub().GetState(id)
 	if err != nil {
@@ -104,7 +104,7 @@ func (s *RegulatorContract) ReadRegulatorProfile(ctx contractapi.TransactionCont
 	return &asset, nil
 }
 
-func (s *RegulatorContract) GetAllRegulator(ctx contractapi.TransactionContextInterface, args string) (*models.RegulatorGetAllResponse, error) {
+func (s *SmartContract) GetAllRegulator(ctx contractapi.TransactionContextInterface, args string) (*models.RegulatorGetAllResponse, error) {
 
 	var filterRegulator = map[string]interface{}{}
 

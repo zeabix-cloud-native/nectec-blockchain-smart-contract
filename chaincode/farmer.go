@@ -12,11 +12,7 @@ import (
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/utils"
 )
 
-type FarmerContract struct {
-    models.SmartContract
-}
-
-func (s *FarmerContract) CreateFarmerProfile(
+func (s *SmartContract) CreateFarmerProfile(
 	ctx contractapi.TransactionContextInterface,
 	args string,
 ) error {
@@ -62,7 +58,7 @@ func (s *FarmerContract) CreateFarmerProfile(
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
-func (s *FarmerContract) UpdateFarmerProfile(ctx contractapi.TransactionContextInterface,
+func (s *SmartContract) UpdateFarmerProfile(ctx contractapi.TransactionContextInterface,
 	args string) error {
 	entityType := models.TransactionFarmer{}
 	inputInterface, err := utils.Unmarshal(args, entityType)
@@ -85,7 +81,7 @@ func (s *FarmerContract) UpdateFarmerProfile(ctx contractapi.TransactionContextI
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
-func (s *FarmerContract) DeleteFarmerProfile(ctx contractapi.TransactionContextInterface, id string) error {
+func (s *SmartContract) DeleteFarmerProfile(ctx contractapi.TransactionContextInterface, id string) error {
 
 	asset, err := s.ReadFarmerProfile(ctx, id)
 	utils.HandleError(err)
@@ -100,7 +96,7 @@ func (s *FarmerContract) DeleteFarmerProfile(ctx contractapi.TransactionContextI
 	return ctx.GetStub().DelState(id)
 }
 
-func (s *FarmerContract) ReadFarmerProfile(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionFarmer, error) {
+func (s *SmartContract) ReadFarmerProfile(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionFarmer, error) {
 
 	assetJSON, err := ctx.GetStub().GetState(id)
 	if err != nil {
@@ -123,7 +119,7 @@ func (s *FarmerContract) ReadFarmerProfile(ctx contractapi.TransactionContextInt
 	return &asset, nil
 }
 
-func (s *FarmerContract) GetAllFarmer(ctx contractapi.TransactionContextInterface, args string) (*models.FarmerGetAllResponse, error) {
+func (s *SmartContract) GetAllFarmer(ctx contractapi.TransactionContextInterface, args string) (*models.FarmerGetAllResponse, error) {
 
 	var filter = map[string]interface{}{}
 
@@ -172,7 +168,7 @@ func (s *FarmerContract) GetAllFarmer(ctx contractapi.TransactionContextInterfac
 	}, nil
 }
 
-func (s *FarmerContract) FilterFarmer(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionFarmer, error) {
+func (s *SmartContract) FilterFarmer(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionFarmer, error) {
 	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
 	if err != nil {
 		return nil, err
@@ -208,7 +204,7 @@ func (s *FarmerContract) FilterFarmer(ctx contractapi.TransactionContextInterfac
 	return assetFarmer, nil
 }
 
-func (s *FarmerContract) GetFarmerHistory(ctx contractapi.TransactionContextInterface, key string) ([]*models.FarmerTransactionHistory, error) {
+func (s *SmartContract) GetFarmerHistory(ctx contractapi.TransactionContextInterface, key string) ([]*models.FarmerTransactionHistory, error) {
 	// Get the history for the specified key
 	farmerResultsIterator, err := ctx.GetStub().GetHistoryForKey(key)
 	if err != nil {
@@ -252,7 +248,7 @@ func (s *FarmerContract) GetFarmerHistory(ctx contractapi.TransactionContextInte
 	return farmerHistory, nil
 }
 
-func (s *FarmerContract) GetLastIdFarmer(ctx contractapi.TransactionContextInterface) string {
+func (s *SmartContract) GetLastIdFarmer(ctx contractapi.TransactionContextInterface) string {
 	// Query to get all records sorted by ID in descending order
 	query := `{
 			"selector": {},
@@ -290,7 +286,7 @@ func (s *FarmerContract) GetLastIdFarmer(ctx contractapi.TransactionContextInter
 	return result.Id
 }
 
-func (s *FarmerContract) CreateFarmerFromCsv(
+func (s *SmartContract) CreateFarmerFromCsv(
 	ctx contractapi.TransactionContextInterface,
 	args string,
 ) error {

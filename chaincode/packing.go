@@ -11,11 +11,7 @@ import (
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/utils"
 )
 
-type PackingContract struct {
-    models.SmartContract
-}
-
-func (s *PackingContract) CreatePacking(
+func (s *SmartContract) CreatePacking(
 	ctx contractapi.TransactionContextInterface,
 	args string,
 ) error {
@@ -70,7 +66,7 @@ func (s *PackingContract) CreatePacking(
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
-func (s *PackingContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
+func (s *SmartContract) UpdatePacking(ctx contractapi.TransactionContextInterface,
 	args string) error {
 
 	entityPacking := models.TransactionPacking{}
@@ -78,7 +74,7 @@ func (s *PackingContract) UpdateAsset(ctx contractapi.TransactionContextInterfac
 	utils.HandleError(err)
 	input := inputInterface.(*models.TransactionPacking)
 
-	asset, err := s.ReadAsset(ctx, input.Id)
+	asset, err := s.ReadPacking(ctx, input.Id)
 	utils.HandleError(err)
 
 	UpdatedPacking := utils.GetTimeNow()
@@ -108,9 +104,9 @@ func (s *PackingContract) UpdateAsset(ctx contractapi.TransactionContextInterfac
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
-func (s *PackingContract) DeleteAsset(ctx contractapi.TransactionContextInterface, id string) error {
+func (s *SmartContract) DeletePacking(ctx contractapi.TransactionContextInterface, id string) error {
 
-	assetPacking, err := s.ReadAsset(ctx, id)
+	assetPacking, err := s.ReadPacking(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -125,9 +121,9 @@ func (s *PackingContract) DeleteAsset(ctx contractapi.TransactionContextInterfac
 	return ctx.GetStub().DelState(id)
 }
 
-func (s *PackingContract) TransferAsset(ctx contractapi.TransactionContextInterface, id string, newOwner string) error {
+func (s *SmartContract) TransferPacking(ctx contractapi.TransactionContextInterface, id string, newOwner string) error {
 
-	assetPacking, err := s.ReadAsset(ctx, id)
+	assetPacking, err := s.ReadPacking(ctx, id)
 	utils.HandleError(err)
 
 	clientID, err := utils.GetIdentity(ctx)
@@ -143,7 +139,7 @@ func (s *PackingContract) TransferAsset(ctx contractapi.TransactionContextInterf
 	return ctx.GetStub().PutState(id, assetJSON)
 }
 
-func (s *PackingContract) ReadAsset(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionPacking, error) {
+func (s *SmartContract) ReadPacking(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionPacking, error) {
 
 	assetJSON, err := ctx.GetStub().GetState(id)
 	if err != nil {
@@ -161,7 +157,7 @@ func (s *PackingContract) ReadAsset(ctx contractapi.TransactionContextInterface,
 
 	return &asset, nil
 }
-func (s *PackingContract) GetAllPacking(ctx contractapi.TransactionContextInterface, args string) (*models.PackingGetAllResponse, error) {
+func (s *SmartContract) GetAllPacking(ctx contractapi.TransactionContextInterface, args string) (*models.PackingGetAllResponse, error) {
 
 	entityGetAllPacking := models.FilterGetAllPacking{}
 	interfacePacking, err := utils.Unmarshal(args, entityGetAllPacking)
@@ -205,7 +201,7 @@ func (s *PackingContract) GetAllPacking(ctx contractapi.TransactionContextInterf
 	}, nil
 }
 
-func (s *PackingContract) FilterPacking(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionPacking, error) {
+func (s *SmartContract) FilterPacking(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionPacking, error) {
 	resultsIteratorP, err := ctx.GetStub().GetStateByRange("", "")
 	if err != nil {
 		return nil, err
@@ -242,7 +238,7 @@ func (s *PackingContract) FilterPacking(ctx contractapi.TransactionContextInterf
 	return assetPacking, nil
 }
 
-func (s *PackingContract) GetLatestHistoryForKey(ctx contractapi.TransactionContextInterface, key string) (*models.PackingTransactionHistory, error) {
+func (s *SmartContract) GetLatestHistoryForKey(ctx contractapi.TransactionContextInterface, key string) (*models.PackingTransactionHistory, error) {
 	resultsIterator, err := ctx.GetStub().GetHistoryForKey(key)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get history for key %s: %v", key, err)
@@ -295,7 +291,7 @@ func (s *PackingContract) GetLatestHistoryForKey(ctx contractapi.TransactionCont
 	return latestHistory, nil
 }
 
-func (s *PackingContract) GetHistoryForKey(ctx contractapi.TransactionContextInterface, key string) ([]*models.PackingTransactionHistory, error) {
+func (s *SmartContract) GetHistoryForKey(ctx contractapi.TransactionContextInterface, key string) ([]*models.PackingTransactionHistory, error) {
 	resultsIterator, err := ctx.GetStub().GetHistoryForKey(key)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get history for key %s: %v", key, err)

@@ -10,11 +10,8 @@ import (
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/utils"
 )
 
-type PackerContract struct {
-    models.SmartContract
-}
 
-func (s *PackerContract) CreatePacker(
+func (s *SmartContract) CreatePacker(
 	ctx contractapi.TransactionContextInterface,
 	args string,
 ) error {
@@ -58,7 +55,7 @@ func (s *PackerContract) CreatePacker(
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
-func (s *PackerContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
+func (s *SmartContract) UpdatePacker(ctx contractapi.TransactionContextInterface,
 	args string) error {
 
 	entityPacker := models.TransactionPacker{}
@@ -66,7 +63,7 @@ func (s *PackerContract) UpdateAsset(ctx contractapi.TransactionContextInterface
 	utils.HandleError(err)
 	input := inputInterface.(*models.TransactionPacker)
 
-	asset, err := s.ReadAsset(ctx, input.Id)
+	asset, err := s.ReadPacker(ctx, input.Id)
 	utils.HandleError(err)
 
 	clientID, err := utils.GetIdentity(ctx)
@@ -90,9 +87,9 @@ func (s *PackerContract) UpdateAsset(ctx contractapi.TransactionContextInterface
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
-func (s *PackerContract) DeleteAsset(ctx contractapi.TransactionContextInterface, id string) error {
+func (s *SmartContract) DeletePacker(ctx contractapi.TransactionContextInterface, id string) error {
 
-	assetPacker, err := s.ReadAsset(ctx, id)
+	assetPacker, err := s.ReadPacker(ctx, id)
 	utils.HandleError(err)
 
 	clientIDPacker, err := utils.GetIdentity(ctx)
@@ -105,25 +102,7 @@ func (s *PackerContract) DeleteAsset(ctx contractapi.TransactionContextInterface
 	return ctx.GetStub().DelState(id)
 }
 
-func (s *PackerContract) TransferAsset(ctx contractapi.TransactionContextInterface, id string, newOwner string) error {
-
-	assetP, err := s.ReadAsset(ctx, id)
-	utils.HandleError(err)
-
-	clientID, err := utils.GetIdentity(ctx)
-	utils.HandleError(err)
-
-	if clientID != assetP.Owner {
-		return utils.ReturnError(utils.UNAUTHORIZE)
-	}
-
-	assetP.Owner = newOwner
-	assetJSON, err := json.Marshal(assetP)
-	utils.HandleError(err)
-	return ctx.GetStub().PutState(id, assetJSON)
-}
-
-func (s *PackerContract) ReadAsset(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionPacker, error) {
+func (s *SmartContract) ReadPacker(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionPacker, error) {
 
 	assetJSON, err := ctx.GetStub().GetState(id)
 	if err != nil {
@@ -142,7 +121,7 @@ func (s *PackerContract) ReadAsset(ctx contractapi.TransactionContextInterface, 
 	return &asset, nil
 }
 
-func (s *PackerContract) GetPackerById(ctx contractapi.TransactionContextInterface, id string) (*models.PackerTransactionResponse, error) {
+func (s *SmartContract) GetPackerById(ctx contractapi.TransactionContextInterface, id string) (*models.PackerTransactionResponse, error) {
 	queryPacker := fmt.Sprintf(`{"selector":{"id":"%s"}}`, id)
 
 	resultsPacker, err := ctx.GetStub().GetQueryResult(queryPacker)
@@ -169,7 +148,7 @@ func (s *PackerContract) GetPackerById(ctx contractapi.TransactionContextInterfa
 	return &asset, nil
 }
 
-func (s *PackerContract) GetAllPacker(ctx contractapi.TransactionContextInterface, args string) (*models.PackerGetAllResponse, error) {
+func (s *SmartContract) GetAllPacker(ctx contractapi.TransactionContextInterface, args string) (*models.PackerGetAllResponse, error) {
 
 	var filterPacker = map[string]interface{}{}
 
@@ -214,7 +193,7 @@ func (s *PackerContract) GetAllPacker(ctx contractapi.TransactionContextInterfac
 	}, nil
 }
 
-func (s *PackerContract) FilterPacker(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionPacker, error) {
+func (s *SmartContract) FilterPacker(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionPacker, error) {
 	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
 	if err != nil {
 		return nil, err
@@ -251,7 +230,7 @@ func (s *PackerContract) FilterPacker(ctx contractapi.TransactionContextInterfac
 	return assetPacker, nil
 }
 
-func (s *PackerContract) GetLastIdPacker(ctx contractapi.TransactionContextInterface) string {
+func (s *SmartContract) GetLastIdPacker(ctx contractapi.TransactionContextInterface) string {
 	// Query to get all records sorted by ID in descending order
 	query := `{
 		"selector": {},
@@ -288,7 +267,7 @@ func (s *PackerContract) GetLastIdPacker(ctx contractapi.TransactionContextInter
 	return result.Id
 }
 
-func (s *PackerContract) CreatePackerCsv(
+func (s *SmartContract) CreatePackerCsv(
 	ctx contractapi.TransactionContextInterface,
 	args string,
 ) error {

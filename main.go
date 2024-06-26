@@ -7,17 +7,24 @@ import (
 	"log"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
-	chaincode "github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
+	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode"
 )
 
+type SmartContractWrapper struct {
+    *chaincode.SmartContract
+}
+
 func main() {
-	smartContract, err := contractapi.NewChaincode(&chaincode.SmartContract{})
+	sc := &chaincode.SmartContract{}
+    scWrapper := &SmartContractWrapper{SmartContract: sc}
+
+    chaincode, err := contractapi.NewChaincode(scWrapper)
 	
 	if err != nil {
 		log.Panicf("Error creating nectec chaincode: %v", err)
 	}
 
-	if err := smartContract.Start(); err != nil {
+	if err := chaincode.Start(); err != nil {
 		log.Panicf("Error starting nectec chaincode: %v", err)
 	}
 }

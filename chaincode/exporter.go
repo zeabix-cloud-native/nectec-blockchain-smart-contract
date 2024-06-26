@@ -10,11 +10,11 @@ import (
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/utils"
 )
 
-type ExporterContract struct {
-    models.SmartContract
+type SmartContract struct {
+	contractapi.Contract
 }
 
-func (s *ExporterContract) CreateExporter(
+func (s *SmartContract) CreateExporter(
 	ctx contractapi.TransactionContextInterface,
 	args string,
 ) error {
@@ -66,7 +66,7 @@ func (s *ExporterContract) CreateExporter(
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
-func (s *ExporterContract) GetLastIdExporter(ctx contractapi.TransactionContextInterface) string {
+func (s *SmartContract) GetLastIdExporter(ctx contractapi.TransactionContextInterface) string {
 	// Query to get all records sorted by ID in descending order
 	query := `{
 		"selector": {},
@@ -103,7 +103,7 @@ func (s *ExporterContract) GetLastIdExporter(ctx contractapi.TransactionContextI
 	return result.Id
 }
 
-func (s *ExporterContract) CreateExporterCsv(
+func (s *SmartContract) CreateExporterCsv(
 	ctx contractapi.TransactionContextInterface,
 	args string,
 ) error {
@@ -173,7 +173,7 @@ func (s *ExporterContract) CreateExporterCsv(
 	return nil
 }
 
-func (s *ExporterContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
+func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
 	args string) error {
 
 	entityExporter := models.TransactionExporter{}
@@ -181,7 +181,7 @@ func (s *ExporterContract) UpdateAsset(ctx contractapi.TransactionContextInterfa
 	utils.HandleError(err)
 	input := inputInterface.(*models.TransactionExporter)
 
-	asset, err := s.ReadAsset(ctx, input.Id)
+	asset, err := s.ReadExporter(ctx, input.Id)
 	utils.HandleError(err)
 
 	clientID, err := utils.GetIdentity(ctx)
@@ -211,9 +211,9 @@ func (s *ExporterContract) UpdateAsset(ctx contractapi.TransactionContextInterfa
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
-func (s *ExporterContract) DeleteAsset(ctx contractapi.TransactionContextInterface, id string) error {
+func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface, id string) error {
 
-	assetE, err := s.ReadAsset(ctx, id)
+	assetE, err := s.ReadExporter(ctx, id)
 	utils.HandleError(err)
 
 	clientIDExporter, err := utils.GetIdentity(ctx)
@@ -226,9 +226,9 @@ func (s *ExporterContract) DeleteAsset(ctx contractapi.TransactionContextInterfa
 	return ctx.GetStub().DelState(id)
 }
 
-func (s *ExporterContract) TransferAsset(ctx contractapi.TransactionContextInterface, id string, newOwner string) error {
+func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterface, id string, newOwner string) error {
 
-	assetE, err := s.ReadAsset(ctx, id)
+	assetE, err := s.ReadExporter(ctx, id)
 	utils.HandleError(err)
 
 	clientID, err := utils.GetIdentity(ctx)
@@ -244,7 +244,7 @@ func (s *ExporterContract) TransferAsset(ctx contractapi.TransactionContextInter
 	return ctx.GetStub().PutState(id, assetJSON)
 }
 
-func (s *ExporterContract) ReadAsset(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionExporter, error) {
+func (s *SmartContract) ReadExporter(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionExporter, error) {
 
 	assetJSON, err := ctx.GetStub().GetState(id)
 	if err != nil {
@@ -263,7 +263,7 @@ func (s *ExporterContract) ReadAsset(ctx contractapi.TransactionContextInterface
 	return &asset, nil
 }
 
-func (s *ExporterContract) GetAllExporter(ctx contractapi.TransactionContextInterface, args string) (*models.ExporterGetAllResponse, error) {
+func (s *SmartContract) GetAllExporter(ctx contractapi.TransactionContextInterface, args string) (*models.ExporterGetAllResponse, error) {
 
 	var filterE = map[string]interface{}{}
 
@@ -308,7 +308,7 @@ func (s *ExporterContract) GetAllExporter(ctx contractapi.TransactionContextInte
 	}, nil
 }
 
-func (s *ExporterContract) FilterExporter(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionExporter, error) {
+func (s *SmartContract) FilterExporter(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionExporter, error) {
 	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
 	if err != nil {
 		return nil, err

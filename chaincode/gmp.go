@@ -10,11 +10,7 @@ import (
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/utils"
 )
 
-type GmpContract struct {
-    models.SmartContract
-}
-
-func (s *GmpContract) CreateGMP(
+func (s *SmartContract) CreateGMP(
 	ctx contractapi.TransactionContextInterface,
 	args string,
 ) error {
@@ -59,7 +55,7 @@ func (s *GmpContract) CreateGMP(
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
-func (s *GmpContract) UpdateGmp(ctx contractapi.TransactionContextInterface, args string) error {
+func (s *SmartContract) UpdateGmp(ctx contractapi.TransactionContextInterface, args string) error {
 
 	entityGmp := models.TransactionGmp{}
 	inputInterface, err := utils.Unmarshal(args, entityGmp)
@@ -92,7 +88,7 @@ func (s *GmpContract) UpdateGmp(ctx contractapi.TransactionContextInterface, arg
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
-func (s *GmpContract) DeleteAsset(ctx contractapi.TransactionContextInterface, id string) error {
+func (s *SmartContract) DeleteGmp(ctx contractapi.TransactionContextInterface, id string) error {
 
 	assetGmp, err := s.ReadGmp(ctx, id)
 	utils.HandleError(err)
@@ -107,25 +103,7 @@ func (s *GmpContract) DeleteAsset(ctx contractapi.TransactionContextInterface, i
 	return ctx.GetStub().DelState(id)
 }
 
-func (s *GmpContract) TransferAsset(ctx contractapi.TransactionContextInterface, id string, newOwner string) error {
-
-	assetG, err := s.ReadGmp(ctx, id)
-	utils.HandleError(err)
-
-	clientID, err := utils.GetIdentity(ctx)
-	utils.HandleError(err)
-
-	if clientID != assetG.Owner {
-		return utils.ReturnError(utils.UNAUTHORIZE)
-	}
-
-	assetG.Owner = newOwner
-	assetJSON, err := json.Marshal(assetG)
-	utils.HandleError(err)
-	return ctx.GetStub().PutState(id, assetJSON)
-}
-
-func (s *GmpContract) ReadGmp(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionGmp, error) {
+func (s *SmartContract) ReadGmp(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionGmp, error) {
 
 	assetJSON, err := ctx.GetStub().GetState(id)
 	if err != nil {
@@ -144,7 +122,7 @@ func (s *GmpContract) ReadGmp(ctx contractapi.TransactionContextInterface, id st
 	return &asset, nil
 }
 
-func (s *GmpContract) GetAllGMP(ctx contractapi.TransactionContextInterface, args string) (*models.GmpGetAllResponse, error) {
+func (s *SmartContract) GetAllGMP(ctx contractapi.TransactionContextInterface, args string) (*models.GmpGetAllResponse, error) {
 
 	entityGetAllGmp := models.FilterGetAllGmp{}
 	interfaceGmp, err := utils.Unmarshal(args, entityGetAllGmp)
@@ -188,7 +166,7 @@ func (s *GmpContract) GetAllGMP(ctx contractapi.TransactionContextInterface, arg
 	}, nil
 }
 
-func (s *GmpContract) GetGmpByPackingHouseNumber(ctx contractapi.TransactionContextInterface, packingHouseRegisterNumber string) (*models.GetByRegisterNumberResponse, error) {
+func (s *SmartContract) GetGmpByPackingHouseNumber(ctx contractapi.TransactionContextInterface, packingHouseRegisterNumber string) (*models.GetByRegisterNumberResponse, error) {
 	// Get the asset using CertID
 	queryKeyPackingHouse := fmt.Sprintf(`{"selector":{"packingHouseRegisterNumber":"%s"}}`, packingHouseRegisterNumber)
 
@@ -226,7 +204,7 @@ func (s *GmpContract) GetGmpByPackingHouseNumber(ctx contractapi.TransactionCont
 
 }
 
-func (s *GmpContract) FilterGmp(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionGmp, error) {
+func (s *SmartContract) FilterGmp(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionGmp, error) {
 	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
 	if err != nil {
 		return nil, err
@@ -263,7 +241,7 @@ func (s *GmpContract) FilterGmp(ctx contractapi.TransactionContextInterface, key
 	return assetGmp, nil
 }
 
-func (s *GmpContract) CreateGmpCsv(
+func (s *SmartContract) CreateGmpCsv(
 	ctx contractapi.TransactionContextInterface,
 	args string,
 ) error {
@@ -321,7 +299,7 @@ func (s *GmpContract) CreateGmpCsv(
 }
 
 
-func (s *GmpContract) UpdateMultipleGmp(
+func (s *SmartContract) UpdateMultipleGmp(
 	ctx contractapi.TransactionContextInterface,
 	args string,
 ) error {

@@ -10,11 +10,7 @@ import (
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/utils"
 )
 
-type NectecStaffContract struct {
-    models.SmartContract
-}
-
-func (s *NectecStaffContract) CreateNstdaStaff(
+func (s *SmartContract) CreateNstdaStaff(
 	ctx contractapi.TransactionContextInterface,
 	args string,
 ) error {
@@ -56,7 +52,7 @@ func (s *NectecStaffContract) CreateNstdaStaff(
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
-func (s *NectecStaffContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
+func (s *SmartContract) UpdateNectecStaff(ctx contractapi.TransactionContextInterface,
 	args string) error {
 
 	entityNstda := models.TransactionNectecStaff{}
@@ -64,7 +60,7 @@ func (s *NectecStaffContract) UpdateAsset(ctx contractapi.TransactionContextInte
 	utils.HandleError(err)
 	input := inputInterface.(*models.TransactionNectecStaff)
 
-	asset, err := s.ReadAsset(ctx, input.Id)
+	asset, err := s.ReadNectecStaff(ctx, input.Id)
 	utils.HandleError(err)
 
 	clientID, err := utils.GetIdentity(ctx)
@@ -85,9 +81,9 @@ func (s *NectecStaffContract) UpdateAsset(ctx contractapi.TransactionContextInte
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
-func (s *NectecStaffContract) DeleteAsset(ctx contractapi.TransactionContextInterface, id string) error {
+func (s *SmartContract) DeleteNectecStaff(ctx contractapi.TransactionContextInterface, id string) error {
 
-	assetNstda, err := s.ReadAsset(ctx, id)
+	assetNstda, err := s.ReadNectecStaff(ctx, id)
 	utils.HandleError(err)
 
 	clientIDNstda, err := utils.GetIdentity(ctx)
@@ -100,25 +96,7 @@ func (s *NectecStaffContract) DeleteAsset(ctx contractapi.TransactionContextInte
 	return ctx.GetStub().DelState(id)
 }
 
-func (s *NectecStaffContract) TransferAsset(ctx contractapi.TransactionContextInterface, id string, newOwner string) error {
-
-	assetN, err := s.ReadAsset(ctx, id)
-	utils.HandleError(err)
-
-	clientID, err := utils.GetIdentity(ctx)
-	utils.HandleError(err)
-
-	if clientID != assetN.Owner {
-		return utils.ReturnError(utils.UNAUTHORIZE)
-	}
-
-	assetN.Owner = newOwner
-	assetJSON, err := json.Marshal(assetN)
-	utils.HandleError(err)
-	return ctx.GetStub().PutState(id, assetJSON)
-}
-
-func (s *NectecStaffContract) ReadAsset(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionNectecStaff, error) {
+func (s *SmartContract) ReadNectecStaff(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionNectecStaff, error) {
 
 	assetJSON, err := ctx.GetStub().GetState(id)
 	if err != nil {
@@ -137,7 +115,7 @@ func (s *NectecStaffContract) ReadAsset(ctx contractapi.TransactionContextInterf
 	return &asset, nil
 }
 
-func (s *NectecStaffContract) GetAllNstdaStaff(ctx contractapi.TransactionContextInterface, args string) (*models.GetAllNectecStaffResponse, error) {
+func (s *SmartContract) GetAllNstdaStaff(ctx contractapi.TransactionContextInterface, args string) (*models.GetAllNectecStaffResponse, error) {
 
 	var filterNstda = map[string]interface{}{}
 
@@ -182,7 +160,7 @@ func (s *NectecStaffContract) GetAllNstdaStaff(ctx contractapi.TransactionContex
 	}, nil
 }
 
-func (s *NectecStaffContract) FilterNstdaStaff(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionNectecStaff, error) {
+func (s *SmartContract) FilterNstdaStaff(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionNectecStaff, error) {
 	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
 	if err != nil {
 		return nil, err
