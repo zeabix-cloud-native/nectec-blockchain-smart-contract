@@ -6,7 +6,6 @@ import (
 	"sort"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
-	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/config"
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/utils"
 )
@@ -15,28 +14,26 @@ func (s SmartContract) CreateRegulatorProfile(
 	ctx contractapi.TransactionContextInterface,
 	args string,
 ) error {
-	envVar := config.GetEnvVar()
-    fmt.Println("MY_ENV_VAR:", envVar)
 
-    entityRegulator := models.TransactionRegulator{}
-    inputInterface, err := utils.Unmarshal(args, entityRegulator)
+	entityRegulator := models.TransactionRegulator{}
+	inputInterface, err := utils.Unmarshal(args, entityRegulator)
 	if err != nil {
 		return err
 	}
 
 	input := inputInterface.(*models.TransactionRegulator)
-    orgName, err := ctx.GetClientIdentity().GetMSPID()
+	orgName, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
 		return utils.ReturnError(utils.UNAUTHORIZE)
 	}
 
-    existRegulator, err := utils.AssetExists(ctx, input.Id)
+	existRegulator, err := utils.AssetExists(ctx, input.Id)
 	utils.HandleError(err)
 	if existRegulator {
 		return fmt.Errorf("the asset %s already exists", input.Id)
 	}
 
-    clientID, err := utils.GetIdentity(ctx)
+	clientID, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
 	CreatedR := utils.GetTimeNow()
