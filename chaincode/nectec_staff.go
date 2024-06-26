@@ -10,7 +10,7 @@ import (
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/utils"
 )
 
-func (s *SmartContract) CreateNstdaStaff(
+func (s *SmartContract) CreateNectecStaff(
 	ctx contractapi.TransactionContextInterface,
 	args string,
 ) error {
@@ -115,7 +115,7 @@ func (s *SmartContract) ReadNectecStaff(ctx contractapi.TransactionContextInterf
 	return &asset, nil
 }
 
-func (s *SmartContract) GetAllNstdaStaff(ctx contractapi.TransactionContextInterface, args string) (*models.GetAllNectecStaffResponse, error) {
+func (s *SmartContract) GetAllNectecStaff(ctx contractapi.TransactionContextInterface, args string) (*models.GetAllNectecStaffResponse, error) {
 
 	var filterNstda = map[string]interface{}{}
 

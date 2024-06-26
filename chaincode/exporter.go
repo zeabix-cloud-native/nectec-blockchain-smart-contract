@@ -173,7 +173,7 @@ func (s *SmartContract) CreateExporterCsv(
 	return nil
 }
 
-func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
+func (s *SmartContract) UpdateExporter(ctx contractapi.TransactionContextInterface,
 	args string) error {
 
 	entityExporter := models.TransactionExporter{}
@@ -211,7 +211,7 @@ func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
-func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface, id string) error {
+func (s *SmartContract) DeleteExporter(ctx contractapi.TransactionContextInterface, id string) error {
 
 	assetE, err := s.ReadExporter(ctx, id)
 	utils.HandleError(err)

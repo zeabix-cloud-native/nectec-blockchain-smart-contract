@@ -119,7 +119,7 @@ func (s *SmartContract) ReadFarmerProfile(ctx contractapi.TransactionContextInte
 	return &asset, nil
 }
 
-func (s *SmartContract) GetAllFarmer(ctx contractapi.TransactionContextInterface, args string) (*models.FarmerGetAllResponse, error) {
+func (s *SmartContract) GetAllFarmerProfile(ctx contractapi.TransactionContextInterface, args string) (*models.FarmerGetAllResponse, error) {
 
 	var filter = map[string]interface{}{}
 
