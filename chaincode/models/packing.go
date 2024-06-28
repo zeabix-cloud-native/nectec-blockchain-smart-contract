@@ -13,6 +13,7 @@ type TransactionPacking struct {
 	ApprovedType   string    `json:"approvedType"`
 	FinalWeight    float32   `json:"finalWeight"`
 	Remark         string    `json:"remark"`
+	CancelReason   string    `json:"cancelReason"`
 	PackerId       string    `json:"packerId"`
 	Gmp            string    `json:"gmp"`
 	PackingHouseName            string    `json:"packingHouseName"`
@@ -23,6 +24,7 @@ type TransactionPacking struct {
 	OrgName        string    `json:"orgName"`
 	UpdatedAt      time.Time `json:"updatedAt"`
 	CreatedAt      time.Time `json:"createdAt"`
+	DocType        DocType   `json:"docType"`
 }
 
 type FilterGetAllPacking struct {

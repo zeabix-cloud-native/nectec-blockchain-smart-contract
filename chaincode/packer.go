@@ -48,6 +48,7 @@ func (s *SmartContract) CreatePacker(
 		OrgName:   orgName,
 		UpdatedAt: TimePacker,
 		CreatedAt: TimePacker,
+		DocType:   models.Packer,
 	}
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
@@ -151,6 +152,7 @@ func (s *SmartContract) GetPackerById(ctx contractapi.TransactionContextInterfac
 func (s *SmartContract) GetAllPacker(ctx contractapi.TransactionContextInterface, args string) (*models.PackerGetAllResponse, error) {
 
 	var filterPacker = map[string]interface{}{}
+	filterPacker["docType"] = "packer"
 
 	entityGetAll := models.FilterGetAllPacker{}
 	interfacePacker, err := utils.Unmarshal(args, entityGetAll)
@@ -233,7 +235,9 @@ func (s *SmartContract) FilterPacker(ctx contractapi.TransactionContextInterface
 func (s *SmartContract) GetLastIdPacker(ctx contractapi.TransactionContextInterface) string {
 	// Query to get all records sorted by ID in descending order
 	query := `{
-		"selector": {},
+		"selector": {
+			"docType": "packer"
+		},
 		"sort": [{"_id": "desc"}],
 		"limit": 1
 	}`
@@ -306,6 +310,7 @@ func (s *SmartContract) CreatePackerCsv(
 			OrgName:   orgName,
 			UpdatedAt: input.CreatedAt,
 			CreatedAt: input.UpdatedAt,
+			DocType:   models.Packer,
 		}
 
 		packerAssetJSON, packerErr := json.Marshal(asset)

@@ -50,6 +50,7 @@ func (s *SmartContract) CreatePacking(
 		ApprovedType:   input.ApprovedType,
 		FinalWeight:    input.FinalWeight,
 		Remark:         input.Remark,
+		CancelReason:   input.CancelReason,
 		PackerId:       input.PackerId,
 		Gmp:            input.Gmp,
 		Gap:            input.Gap,
@@ -59,6 +60,7 @@ func (s *SmartContract) CreatePacking(
 		OrgName:        orgName,
 		UpdatedAt:      TimePacking,
 		CreatedAt:      TimePacking,
+		DocType: 		models.Packing,
 	}
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
@@ -89,6 +91,7 @@ func (s *SmartContract) UpdatePacking(ctx contractapi.TransactionContextInterfac
 	asset.ApprovedType = input.ApprovedType
 	asset.FinalWeight = input.FinalWeight
 	asset.Remark = input.Remark
+	asset.CancelReason = input.CancelReason
 	asset.PackerId = input.PackerId // not update
 	asset.Gmp = input.Gmp
 	asset.Gap = input.Gap
@@ -226,8 +229,12 @@ func (s *SmartContract) FilterPacking(ctx contractapi.TransactionContextInterfac
 			return nil, err
 		}
 
-		if val, ok := m[key]; ok && fmt.Sprintf("%v", val) == value {
-			assetPacking = append(assetPacking, &asset)
+		// Check if docType is "packing"
+		if docType, ok := m["docType"]; ok && docType == "packing" {
+			// Apply the key-value filter
+			if val, ok := m[key]; ok && fmt.Sprintf("%v", val) == value {
+				assetPacking = append(assetPacking, &asset)
+			}
 		}
 	}
 

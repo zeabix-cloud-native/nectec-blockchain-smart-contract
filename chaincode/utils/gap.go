@@ -9,6 +9,7 @@ import (
 
 func GapSetFilter(input *models.FilterGetAllGap) map[string]interface{} {
 	var filter = map[string]interface{}{}
+	
 	if input.FarmerID != nil {
 		filter["farmerId"] = *input.FarmerID
 	}
@@ -40,6 +41,8 @@ func GapSetFilter(input *models.FilterGetAllGap) map[string]interface{} {
 	if input.AvailableGap != nil {
 		filter["farmerId"] = ""
 	}
+
+	filter["docType"] = "gap"
 
 	return filter
 }

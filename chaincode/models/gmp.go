@@ -10,6 +10,7 @@ type TransactionGmp struct {
 	PackingHouseName           string    `json:"packingHouseName"`
 	UpdatedDate                string    `json:"updatedDate"`
 	Source                     string    `json:"source"`
+	DocType                    DocType   `json:"docType"`
 	Owner                      string    `json:"owner"`
 	OrgName                    string    `json:"orgName"`
 	UpdatedAt                  time.Time `json:"updatedAt"`

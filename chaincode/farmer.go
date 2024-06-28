@@ -123,6 +123,7 @@ func (s *SmartContract) ReadFarmerProfile(ctx contractapi.TransactionContextInte
 func (s *SmartContract) GetAllFarmerProfile(ctx contractapi.TransactionContextInterface, args string) (*models.FarmerGetAllResponse, error) {
 
 	var filter = map[string]interface{}{}
+	filter["docType"] = "farmer"
 
 	entityGetAll := models.FilterGetAllFarmer{}
 	inputInterface, err := utils.Unmarshal(args, entityGetAll)
@@ -252,7 +253,9 @@ func (s *SmartContract) GetFarmerHistory(ctx contractapi.TransactionContextInter
 func (s *SmartContract) GetLastIdFarmer(ctx contractapi.TransactionContextInterface) string {
 	// Query to get all records sorted by ID in descending order
 	query := `{
-			"selector": {},
+			"selector": {
+				"docType": "farmer"
+			},
 			"sort": [{"_id": "desc"}],
 			"limit": 1,
 			"use_index": "index-id"

@@ -18,6 +18,8 @@ func GmpSetFilter(input *models.FilterGetAllGmp) map[string]interface{} {
 		filter["address"] = input.Address
 	}
 
+	filter["docType"] = "gmp"
+
 	return filter
 }
 

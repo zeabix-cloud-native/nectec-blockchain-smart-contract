@@ -59,6 +59,7 @@ func (s *SmartContract) CreateExporter(
 		OrgName:   orgName,
 		UpdatedAt: CreatedTime,
 		CreatedAt: CreatedTime,
+		DocType: models.Exporter,
 	}
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
@@ -69,7 +70,9 @@ func (s *SmartContract) CreateExporter(
 func (s *SmartContract) GetLastIdExporter(ctx contractapi.TransactionContextInterface) string {
 	// Query to get all records sorted by ID in descending order
 	query := `{
-		"selector": {},
+		"selector": {
+			"docType": "exporter"
+		},
 		"sort": [{"_id": "desc"}],
 		"limit": 1
 	}`
@@ -147,6 +150,7 @@ func (s *SmartContract) CreateExporterCsv(
 			ExpiredDate: 			 	input.ExpiredDate,
 			Owner:                      clientIDG,
 			OrgName:                    orgNameG,
+			DocType: 					models.Exporter,
 		}
 
 		assetJSON, err := json.Marshal(assetG)

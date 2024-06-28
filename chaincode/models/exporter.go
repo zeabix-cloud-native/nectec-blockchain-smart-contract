@@ -15,6 +15,7 @@ type TransactionExporter struct {
 	IssueDate     string    `json:"issueDate"`
 	ExpiredDate     string    `json:"expiredDate"`
 	OrgName   string    `json:"orgName"`
+	DocType   DocType   `json:"docType"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	CreatedAt time.Time `json:"createdAt"`
 }

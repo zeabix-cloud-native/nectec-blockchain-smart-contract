@@ -46,6 +46,7 @@ func (s *SmartContract) CreateGMP(
 		Source:                     input.Source,
 		Owner:                      clientID,
 		OrgName:                    orgName,
+		DocType: 					models.Gmp,
 		UpdatedAt:                  TimeGmp,
 		CreatedAt:                  TimeGmp,
 	}
@@ -280,6 +281,7 @@ func (s *SmartContract) CreateGmpCsv(
 			UpdatedDate:                input.UpdatedDate,
 			Source:                     input.Source,
 			Owner:                      clientIDG,
+			DocType: 					models.Gmp,
 			OrgName:                    orgNameG,
 		}
 		assetJSON, err := json.Marshal(assetG)

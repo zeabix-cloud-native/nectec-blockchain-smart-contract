@@ -11,6 +11,7 @@ type TransactionPacker struct {
 	PackerGmp PackerGmp `json:"packerGmp"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	CreatedAt time.Time `json:"createdAt"`
+	DocType	  DocType	`json:"docType"`
 }
 
 type FilterGetAllPacker struct {

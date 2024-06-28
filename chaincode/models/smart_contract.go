@@ -11,4 +11,8 @@ type DocType string
 const (
 	Farmer DocType = "farmer"
 	Gap DocType = "gap"
+	Gmp DocType = "gmp"
+	Exporter DocType = "exporter"
+	Packer DocType = "packer"
+	Packing DocType = "packing"
 )

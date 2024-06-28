@@ -10,6 +10,8 @@ import (
 func PackingSetFilter(input *models.FilterGetAllPacking) map[string]interface{} {
 	var filter = map[string]interface{}{}
 
+	filter["docType"] = "packing"
+
 	if input.Gap != nil {
 		filter["gap"] = *input.Gap
 	}
@@ -44,11 +46,15 @@ func PackingSetFilter(input *models.FilterGetAllPacking) map[string]interface{} 
 		filter["processStatus"] = *input.ProcessStatus
 	}
 
+	filter["docType"] = "packing"
+
 	return filter
 }
 
 func PackingFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, input *models.FilterGetAllPacking, filter map[string]interface{}) ([]*models.PackingTransactionResponse, error) {
 	search, searchExists := filter["search"]
+
+	filter["docType"] = "packing"
 
 	if searchExists {
 		delete(filter, "search")

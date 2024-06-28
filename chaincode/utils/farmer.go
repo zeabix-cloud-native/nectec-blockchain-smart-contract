@@ -10,6 +10,8 @@ import (
 func FarmerFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, input *models.FilterGetAllFarmer) ([]*models.FarmerTransactionResponse, error) {
 	var filter = map[string]interface{}{}
 
+	filter["docType"] = "farmer"
+
 	if input.FarmerGap != "" {
 		filter["farmerGaps"] = map[string]interface{}{
 			"$elemMatch": map[string]interface{}{
