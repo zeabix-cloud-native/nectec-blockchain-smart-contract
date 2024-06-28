@@ -114,14 +114,14 @@ func (s *SmartContract) DeletePacking(ctx contractapi.TransactionContextInterfac
 		return err
 	}
 
-	clientIDPacking, err := utils.GetIdentity(ctx)
-	utils.HandleError(err)
+	// clientIDPacking, err := utils.GetIdentity(ctx)
+	// utils.HandleError(err)
 
-	if clientIDPacking != assetPacking.Owner {
-		return utils.ReturnError(utils.UNAUTHORIZE)
-	}
+	// if clientIDPacking != assetPacking.Owner {
+	// 	return utils.ReturnError(utils.UNAUTHORIZE)
+	// }
 
-	return ctx.GetStub().DelState(id)
+	return ctx.GetStub().DelState(assetPacking.Id)
 }
 
 func (s *SmartContract) TransferPacking(ctx contractapi.TransactionContextInterface, id string, newOwner string) error {
@@ -190,7 +190,7 @@ func (s *SmartContract) GetAllPacking(ctx contractapi.TransactionContextInterfac
 	}
 
 	sort.Slice(arrPacking, func(i, j int) bool {
-		return arrPacking[i].UpdatedAt.Before(arrPacking[j].UpdatedAt)
+		return arrPacking[i].UpdatedAt.After(arrPacking[j].UpdatedAt)
 	})
 
 	if len(arrPacking) == 0 {

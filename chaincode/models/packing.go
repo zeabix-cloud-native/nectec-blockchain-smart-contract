@@ -60,6 +60,7 @@ type PackingTransactionResponse struct {
 	Gmp           						 string    `json:"gmp"`
 	PackingHouseName           string    `json:"packingHouseName"`
 	Gap           string    `json:"gap"`
+	CancelReason           string    `json:"cancelReason"`
 	ProcessStatus int       `json:"processStatus"`
 	SellingStep int       `json:"sellingStep"`
 	UpdatedAt     time.Time `json:"updatedAt"`
