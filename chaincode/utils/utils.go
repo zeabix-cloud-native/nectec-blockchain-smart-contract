@@ -103,3 +103,16 @@ func HandleError(err error) error {
 	}
 	return nil
 }
+
+func StructToMap(v interface{}) (map[string]interface{}, error) {
+    var m map[string]interface{}
+    data, err := json.Marshal(v)
+    if err != nil {
+        return nil, err
+    }
+    err = json.Unmarshal(data, &m)
+    if err != nil {
+        return nil, err
+    }
+    return m, nil
+}

@@ -19,7 +19,7 @@ type TransactionPacking struct {
 	PackingHouseName            string    `json:"packingHouseName"`
 	Gap            string    `json:"gap"` // รหัสซื้อขาย
 	ProcessStatus  int       `json:"processStatus"`
-	SellingStep				   int       `json:"sellingStep"`
+	SellingStep    int    `json:"sellingStep"`
 	Owner          string    `json:"owner"`
 	OrgName        string    `json:"orgName"`
 	UpdatedAt      time.Time `json:"updatedAt"`
@@ -62,7 +62,8 @@ type PackingTransactionResponse struct {
 	Gap           string    `json:"gap"`
 	CancelReason           string    `json:"cancelReason"`
 	ProcessStatus int       `json:"processStatus"`
-	SellingStep int       `json:"sellingStep"`
+	TotalSold        float32   `json:"totalSold"`
+	SellingStep       int    `json:"sellingStep"`
 	UpdatedAt     time.Time `json:"updatedAt"`
 	CreatedAt     time.Time `json:"createdAt"`
 }

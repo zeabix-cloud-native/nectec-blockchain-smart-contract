@@ -56,6 +56,7 @@ type GapTransactionResponse struct {
 	FarmerID    string    `json:"farmerId"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 	CreatedAt   time.Time `json:"createdAt"`
+	TotalSold   float32   `json:"totalSold"`
 }
 
 type GetAllGapResponse struct {

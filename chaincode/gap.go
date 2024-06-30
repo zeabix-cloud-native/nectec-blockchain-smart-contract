@@ -237,6 +237,18 @@ func (s *SmartContract) GetAllGAP(ctx contractapi.TransactionContextInterface, a
 		return nil, err
 	}
 
+	gapTotals := make(map[string]float32)
+	for _, asset := range assets {
+        packingDocs, err := FetchPackingDocsByGap(ctx, asset.CertID)
+        if err != nil {
+            return nil, err
+        }
+
+        for _, doc := range packingDocs {
+            gapTotals[asset.CertID] += doc.FinalWeight
+        }
+    }
+
 	sort.Slice(assets, func(i, j int) bool {
 		return assets[i].UpdatedAt.Before(assets[j].UpdatedAt)
 	})
@@ -245,11 +257,55 @@ func (s *SmartContract) GetAllGAP(ctx contractapi.TransactionContextInterface, a
 		assets = []*models.GapTransactionResponse{}
 	}
 
+	for _, asset := range assets {
+        if total, ok := gapTotals[asset.CertID]; ok {
+            asset.TotalSold = total
+        }
+    }
+
 	return &models.GetAllGapResponse{
 		Data:  "All Gap",
 		Obj:   assets,
 		Total: total,
 	}, nil
+}
+
+func FetchPackingDocsByGap(ctx contractapi.TransactionContextInterface, gap string) ([]*models.PackingTransactionResponse, error) {
+    filter := map[string]interface{}{
+        "selector": map[string]interface{}{
+            "docType": "packing",
+            "gap":     gap,
+        },
+    }
+
+    getStringPacking, err := json.Marshal(filter)
+    if err != nil {
+        return nil, err
+    }
+
+    queryPacking, err := ctx.GetStub().GetQueryResult(string(getStringPacking))
+    if err != nil {
+        return nil, err
+    }
+    defer queryPacking.Close()
+
+    var dataPacking []*models.PackingTransactionResponse
+    for queryPacking.HasNext() {
+        queryResponse, err := queryPacking.Next()
+        if err != nil {
+            return nil, err
+        }
+
+        var asset models.PackingTransactionResponse
+        err = json.Unmarshal(queryResponse.Value, &asset)
+        if err != nil {
+            return nil, err
+        }
+
+        dataPacking = append(dataPacking, &asset)
+    }
+
+    return dataPacking, nil
 }
 
 func (s *SmartContract) FilterGap(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionGap, error) {
