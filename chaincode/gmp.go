@@ -94,14 +94,14 @@ func (s *SmartContract) DeleteGmp(ctx contractapi.TransactionContextInterface, i
 	assetGmp, err := s.ReadGmp(ctx, id)
 	utils.HandleError(err)
 
-	clientIDGmp, err := utils.GetIdentity(ctx)
-	utils.HandleError(err)
+	// clientIDGmp, err := utils.GetIdentity(ctx)
+	// utils.HandleError(err)
 
-	if clientIDGmp != assetGmp.Owner {
-		return utils.ReturnError(utils.UNAUTHORIZE)
-	}
+	// if clientIDGmp != assetGmp.Owner {
+	// 	return utils.ReturnError(utils.UNAUTHORIZE)
+	// }
 
-	return ctx.GetStub().DelState(id)
+	return ctx.GetStub().DelState(assetGmp.Id)
 }
 
 func (s *SmartContract) ReadGmp(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionGmp, error) {

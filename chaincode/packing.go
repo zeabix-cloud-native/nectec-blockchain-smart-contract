@@ -226,6 +226,20 @@ func CalculateTotalSold(documents []*models.PackingTransactionResponse) {
     }
 }
 
+func CalculateTotalPackingSold(documents []*models.TransactionPacking) {
+	packingTotals := make(map[string]float32)
+	for _, doc := range documents {
+		if doc.Gap != "" {
+			packingTotals[doc.Gap] += doc.FinalWeight
+		}
+	}
+	for _, doc := range documents {
+		if doc.Gap != "" {
+			doc.TotalSold = packingTotals[doc.Gap]
+		}
+	}
+}
+
 func (s *SmartContract) FilterPacking(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionPacking, error) {
 	resultsIteratorP, err := ctx.GetStub().GetStateByRange("", "")
 	if err != nil {
@@ -259,6 +273,8 @@ func (s *SmartContract) FilterPacking(ctx contractapi.TransactionContextInterfac
 			}
 		}
 	}
+
+	CalculateTotalPackingSold(assetPacking)
 
 	sort.Slice(assetPacking, func(i, j int) bool {
 		return assetPacking[i].UpdatedAt.After(assetPacking[j].UpdatedAt)

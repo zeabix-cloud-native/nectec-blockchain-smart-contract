@@ -14,8 +14,16 @@ func GmpSetFilter(input *models.FilterGetAllGmp) map[string]interface{} {
 		filter["packingHouseRegisterNumber"] = input.PackingHouseRegisterNumber
 	}
 
+	if input.PackingHouseName != nil {
+		filter["packingHouseName"] = map[string]interface{}{
+			"$regex": input.PackingHouseName,
+		}
+	}
+
 	if input.Address != nil {
-		filter["address"] = input.Address
+		filter["address"] = map[string]interface{}{
+			"$regex": input.Address,
+		}
 	}
 
 	filter["docType"] = "gmp"

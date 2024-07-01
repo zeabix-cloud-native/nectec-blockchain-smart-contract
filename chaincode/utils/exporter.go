@@ -7,11 +7,65 @@ import (
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
 )
 
-func ExporterFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, input *models.ExporterFilterGetAll) ([]*models.ExporterTransactionResponse, error) {
+func ExporterSetFilter(input *models.ExporterFilterGetAll) map[string]interface{} {
 	var filter = map[string]interface{}{}
+
+	filter["docType"] = "exporter"
+
+	if input.Search != nil {
+		filter["search"] = *input.Search
+	}
+
+	if input.Province != nil {
+		filter["province"] = *input.Province
+	}
+
+	if input.District != nil {
+		filter["district"] = *input.District
+	}
+
+	if input.IssueDateFrom != nil && input.IssueDateTo != nil {
+		filter["issueDate"] = map[string]interface{}{
+			"$gte": *input.IssueDateFrom,
+			"$lte": *input.IssueDateTo,
+		}
+	}
+
+	if input.ExpireDateFrom != nil && input.ExpireDateTo != nil {
+		filter["expiredDate"] = map[string]interface{}{
+			"$gte": *input.ExpireDateFrom,
+			"$lte": *input.ExpireDateTo,
+		}
+	}
+
+	return filter
+}
+
+func ExporterFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, input *models.ExporterFilterGetAll, filter map[string]interface{}) ([]*models.ExporterTransactionResponse, error) {
+	search, searchExists := filter["search"]
+
+	filter["docType"] = "exporter"
+
+	if searchExists {
+		delete(filter, "search")
+	}
 
 	selector := map[string]interface{}{
 		"selector": filter,
+	}
+
+	if searchExists && search != "" {
+		selector["selector"] = map[string]interface{}{
+			"$and": []map[string]interface{}{
+				filter,
+				{
+					"$or": []map[string]interface{}{
+						{"plantType": map[string]interface{}{"$regex": search}},
+						{"name": map[string]interface{}{"$regex": search}},
+					},
+				},
+			},
+		}
 	}
 
 	if input.Skip != 0 || input.Limit != 0 {

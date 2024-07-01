@@ -276,7 +276,8 @@ func (s *SmartContract) GetAllExporter(ctx contractapi.TransactionContextInterfa
 	if err != nil {
 		return nil, err
 	}
-	input := interfaceE.(*models.ExporterFilterGetAll)
+	inputExporter := interfaceE.(*models.ExporterFilterGetAll)
+    filterExporter := utils.ExporterSetFilter(inputExporter)
 
 	queryStringE, err := utils.BuildQueryString(filterE)
 	if err != nil {
@@ -288,11 +289,11 @@ func (s *SmartContract) GetAllExporter(ctx contractapi.TransactionContextInterfa
 		return nil, err
 	}
 
-	if input.Skip > total {
+	if inputExporter.Skip > total {
 		return nil, fmt.Errorf(utils.SKIPOVER)
 	}
 
-	arrExporter, err := utils.ExporterFetchResultsWithPagination(ctx, input)
+	arrExporter, err := utils.ExporterFetchResultsWithPagination(ctx, inputExporter, filterExporter)
 	if err != nil {
 		return nil, err
 	}

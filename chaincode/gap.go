@@ -120,14 +120,14 @@ func (s *SmartContract) DeleteGap(ctx contractapi.TransactionContextInterface, i
 	assetGap, err := s.ReadGap(ctx, id)
 	utils.HandleError(err)
 
-	clientIDGap, err := utils.GetIdentity(ctx)
-	utils.HandleError(err)
+	// clientIDGap, err := utils.GetIdentity(ctx)
+	// utils.HandleError(err)
 
-	if clientIDGap != assetGap.Owner {
-		return utils.ReturnError(utils.UNAUTHORIZE)
-	}
+	// if clientIDGap != assetGap.Owner {
+	// 	return utils.ReturnError(utils.UNAUTHORIZE)
+	// }
 
-	return ctx.GetStub().DelState(id)
+	return ctx.GetStub().DelState(assetGap.Id)
 }
 
 func (s *SmartContract) GetGapByFarmerID(ctx contractapi.TransactionContextInterface, farmerId string) (*models.GetGapByCertIdResponse, error) {

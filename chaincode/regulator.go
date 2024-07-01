@@ -145,3 +145,17 @@ func (s *SmartContract) GetAllRegulator(ctx contractapi.TransactionContextInterf
 		Total: total,
 	}, nil
 }
+
+func (s *SmartContract) DeleteRegulator(ctx contractapi.TransactionContextInterface, id string) error {
+	assetRegulator, err := s.ReadRegulatorProfile(ctx, id)
+	utils.HandleError(err)
+
+	// clientIDGmp, err := utils.GetIdentity(ctx)
+	// utils.HandleError(err)
+
+	// if clientIDGmp != assetRegulator.Owner {
+	// 	return utils.ReturnError(utils.UNAUTHORIZE)
+	// }
+
+	return ctx.GetStub().DelState(assetRegulator.Id)
+}

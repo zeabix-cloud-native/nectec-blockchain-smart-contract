@@ -22,6 +22,7 @@ type FilterGetAllGmp struct {
 	PackerId 									 string  `json:"packerId"`
 	Limit                      int     `json:"limit"`
 	PackingHouseRegisterNumber *string `json:"packingHouseRegisterNumber"`
+	PackingHouseName 		   *string `json:"packingHouseName"`
 	Address                    *string `json:"address"`
 }
 

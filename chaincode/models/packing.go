@@ -21,6 +21,7 @@ type TransactionPacking struct {
 	ProcessStatus  int       `json:"processStatus"`
 	SellingStep    int    `json:"sellingStep"`
 	Owner          string    `json:"owner"`
+	TotalSold        float32   `json:"totalSold"`
 	OrgName        string    `json:"orgName"`
 	UpdatedAt      time.Time `json:"updatedAt"`
 	CreatedAt      time.Time `json:"createdAt"`

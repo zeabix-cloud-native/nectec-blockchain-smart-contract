@@ -36,10 +36,10 @@ func Unmarshal(args string, entityType interface{}) (interface{}, error) {
 }
 
 func BuildQueryString(filter map[string]interface{}) (string, error) {
-
 	selector := map[string]interface{}{
 		"selector": filter,
 	}
+	
 	queryString, err := json.Marshal(selector)
 	if err != nil {
 		return "", err
