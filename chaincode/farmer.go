@@ -46,6 +46,7 @@ func (s *SmartContract) CreateFarmerProfile(
 	asset := models.TransactionFarmer{
 		Id:        input.Id,
 		CertId:    input.CertId,
+		ProfileImg:    input.ProfileImg,
 		Owner:     clientID,
 		OrgName:   orgName,
 		UpdatedAt: CreatedAt,
@@ -72,6 +73,7 @@ func (s *SmartContract) UpdateFarmerProfile(ctx contractapi.TransactionContextIn
 	UpdatedAt := utils.GetTimeNow()
 
 	asset.Id = input.Id
+	asset.ProfileImg = input.ProfileImg
 	asset.CertId = input.CertId
 	asset.UpdatedAt = UpdatedAt
 	asset.FarmerGaps = input.FarmerGaps

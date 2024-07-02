@@ -5,6 +5,7 @@ import "time"
 type TransactionFarmer struct {
 	Id        string    `json:"id"`
 	CertId    string    `json:"certId"`
+	ProfileImg    string    `json:"profileImg"`
 	Owner     string    `json:"owner"`
 	OrgName   string    `json:"orgName"`
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -43,6 +44,7 @@ type FarmerGap struct {
 type FarmerTransactionResponse struct {
 	Id        string    `json:"id"`
 	CertId    string    `json:"certId"`
+	ProfileImg    string    `json:"profileImg"`
 	FarmerGap []FarmerGap `json:"farmerGaps"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	CreatedAt time.Time `json:"createdAt"`

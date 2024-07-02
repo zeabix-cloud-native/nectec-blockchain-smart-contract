@@ -34,9 +34,11 @@ type FilterGetAllGap struct {
 	Province     *string  `json:"province"`
 	AreaRaiFrom  *float32 `json:"areaRaiFrom"`
 	AreaRaiTo    *float32 `json:"areaRaiTo"`
-	IssueDate    *string  `json:"issueDate"`
-	ExpireDate   *string  `json:"expireDate"`
 	AvailableGap *string  `json:"availableGap"`
+	IssueDateFrom  *string `json:"issueDateFrom"`
+	IssueDateTo    *string `json:"issueDateTo"`
+	ExpireDateFrom  *string `json:"expireDateFrom"`
+	ExpireDateTo    *string `json:"expireDateTo"`
 }
 
 type GapTransactionResponse struct {

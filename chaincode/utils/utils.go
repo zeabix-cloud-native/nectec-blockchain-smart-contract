@@ -5,12 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
 const (
+	COUCHDB_DATEFORMAT string = "02-01-2006"
+	DATEFORMAT    string = "02-01-2006"
 	UNAUTHORIZE   string = "client is not authorized this asset"
 	TIMEFORMAT    string = "2006-01-02T15:04:05Z"
 	SKIPOVER      string = "skip over total data"
@@ -65,10 +68,38 @@ func CountTotalResults(ctx contractapi.TransactionContextInterface, queryString 
 	return total, nil
 }
 
+func ParseDate(input string) (string, error) {
+	sanitizedInput := strings.ReplaceAll(input, "–", "-")
+
+	parsedTime, err := time.Parse(DATEFORMAT, sanitizedInput)
+	if err != nil {
+		return "", err
+	}
+
+	return parsedTime.Format(COUCHDB_DATEFORMAT), nil
+}
+
+func SanitizeDate(dateStr string) (string, error) {
+	dateStr = strings.ReplaceAll(dateStr, "–", "-")
+	parsedDate, err := time.Parse("02-01-2006", dateStr)
+	if err != nil {
+		return "", err
+	}
+	return parsedDate.Format("2006-01-02"), nil
+}
+
+
 func GetTimeNow() time.Time {
-	formattedTime := time.Now().Format(TIMEFORMAT)
-	CreatedAt, _ := time.Parse(TIMEFORMAT, formattedTime)
-	return CreatedAt
+	now := time.Now()
+	
+	formattedTime := now.Format(TIMEFORMAT)
+	
+	parsedTime, err := time.ParseInLocation(TIMEFORMAT, formattedTime, time.Local)
+	if err != nil {
+		fmt.Println("Error parsing time:", err)
+	}
+	
+	return parsedTime
 }
 
 func ReturnError(data string) error {

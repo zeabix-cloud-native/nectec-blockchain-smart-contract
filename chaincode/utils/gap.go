@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
@@ -31,11 +32,19 @@ func GapSetFilter(input *models.FilterGetAllGap) map[string]interface{} {
 			"$lte": *input.AreaRaiTo,
 		}
 	}
-	if input.IssueDate != nil {
-		filter["issueDate"] = *input.IssueDate
+
+	if input.IssueDateFrom != nil && input.IssueDateTo != nil {
+		filter["issueDate"] = map[string]interface{}{
+			"$gte": *input.IssueDateFrom,
+			"$lte": *input.IssueDateTo,
+		}
 	}
-	if input.ExpireDate != nil {
-		filter["expireDate"] = *input.ExpireDate
+
+	if input.ExpireDateFrom != nil && input.ExpireDateTo != nil {
+		filter["expireDate"] = map[string]interface{}{
+			"$gte": *input.ExpireDateFrom,
+			"$lte": *input.ExpireDateTo,
+		}
 	}
 
 	if input.AvailableGap != nil {
@@ -43,6 +52,13 @@ func GapSetFilter(input *models.FilterGetAllGap) map[string]interface{} {
 	}
 
 	filter["docType"] = "gap"
+
+	filterJSON, err := json.Marshal(filter)
+	if err != nil {
+		fmt.Printf("Error marshalling filter to JSON: %v\n", err)
+	} else {
+		fmt.Printf("gap filter: %s\n", filterJSON)
+	}
 
 	return filter
 }
@@ -53,8 +69,10 @@ func GapFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, 
 		"selector": filter,
 	}
 
-	if input.Skip != 0 || input.Limit != 0 {
+	if input.Skip > 0 {
 		selector["skip"] = input.Skip
+	}
+	if input.Limit > 0 {
 		selector["limit"] = input.Limit
 	}
 

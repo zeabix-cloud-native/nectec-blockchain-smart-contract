@@ -250,7 +250,7 @@ func (s *SmartContract) GetAllGAP(ctx contractapi.TransactionContextInterface, a
     }
 
 	sort.Slice(assets, func(i, j int) bool {
-		return assets[i].UpdatedAt.Before(assets[j].UpdatedAt)
+		return assets[i].UpdatedAt.After(assets[j].UpdatedAt)
 	})
 
 	if len(assets) == 0 {
@@ -450,7 +450,9 @@ func (s *SmartContract) CreateGapCsv(
 			Owner:       clientIDGap,
 			OrgName:     orgNameGap,
 			DocType:     models.Gap,
+			CreatedAt:   utils.GetTimeNow(),
 		}
+		
 		assetJSON, err := json.Marshal(assetGap)
 		if err != nil {
 			return fmt.Errorf("failed to marshal asset JSON: %v", err)
