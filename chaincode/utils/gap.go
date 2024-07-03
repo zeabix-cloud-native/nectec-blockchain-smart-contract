@@ -51,6 +51,12 @@ func GapSetFilter(input *models.FilterGetAllGap) map[string]interface{} {
 		filter["farmerId"] = ""
 	}
 
+	if input.Gaps != nil && len(input.Gaps) > 0 {
+		filter["certId"] = map[string]interface{}{
+			"$in": input.Gaps,
+		}
+	}
+
 	filter["docType"] = "gap"
 
 	filterJSON, err := json.Marshal(filter)

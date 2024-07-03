@@ -17,6 +17,7 @@ type TransactionGap struct {
 	UpdatedDate string    `json:"updatedDate"`
 	Source      string    `json:"source"`
 	FarmerID    string    `json:"farmerId"`
+	IsCanDelete bool       `json:"isCanDelete"`
 	Owner       string    `json:"owner"`
 	OrgName     string    `json:"orgName"`
 	DocType     DocType   `json:"docType"`
@@ -39,6 +40,7 @@ type FilterGetAllGap struct {
 	IssueDateTo    *string `json:"issueDateTo"`
 	ExpireDateFrom  *string `json:"expireDateFrom"`
 	ExpireDateTo    *string `json:"expireDateTo"`
+	Gaps           []string `json:"gaps"`
 }
 
 type GapTransactionResponse struct {
@@ -59,6 +61,7 @@ type GapTransactionResponse struct {
 	UpdatedAt   time.Time `json:"updatedAt"`
 	CreatedAt   time.Time `json:"createdAt"`
 	TotalSold   float32   `json:"totalSold"`
+	IsCanDelete bool       `json:"isCanDelete"`
 }
 
 type GetAllGapResponse struct {

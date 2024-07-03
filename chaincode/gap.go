@@ -247,6 +247,28 @@ func (s *SmartContract) GetAllGAP(ctx contractapi.TransactionContextInterface, a
         for _, doc := range packingDocs {
             gapTotals[asset.CertID] += doc.FinalWeight
         }
+
+		// Initialize isCanDelete to true
+		asset.IsCanDelete = true
+
+		// Query CouchDB for related 'packing' documents to determine if gap can be deleted
+		salesQueryString := fmt.Sprintf(`{
+			"selector": {
+				"docType": "packing",
+				"gap": "%s"
+			}
+		}`, asset.CertID)
+
+		salesResultsIterator, err := ctx.GetStub().GetQueryResult(salesQueryString)
+		if err != nil {
+			return nil, fmt.Errorf("failed to query related sales: %v", err)
+		}
+		defer salesResultsIterator.Close()
+
+		// If there are any related sales, set isCanDelete to false
+		if salesResultsIterator.HasNext() {
+			asset.IsCanDelete = false
+		}
     }
 
 	sort.Slice(assets, func(i, j int) bool {
@@ -450,6 +472,7 @@ func (s *SmartContract) CreateGapCsv(
 			Owner:       clientIDGap,
 			OrgName:     orgNameGap,
 			DocType:     models.Gap,
+			IsCanDelete: false,
 			CreatedAt:   utils.GetTimeNow(),
 		}
 		

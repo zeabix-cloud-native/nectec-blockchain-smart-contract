@@ -3,7 +3,6 @@ package chaincode
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"sort"
 	"time"
 
@@ -115,9 +114,58 @@ func (s *SmartContract) ReadFarmerProfile(ctx contractapi.TransactionContextInte
 		return nil, err
 	}
 	
-	if asset.FarmerGaps == nil {
-		asset.FarmerGaps = []models.FarmerGap{} 
+   // Query CouchDB for related 'gap' documents
+    queryString := fmt.Sprintf(`{
+        "selector": {
+            "docType": "gap",
+            "farmerId": "%s"
+        }
+    }`, asset.Id)
+
+	fmt.Printf("queryString %v", queryString)
+
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query related gaps: %v", err)
 	}
+	defer resultsIterator.Close()
+
+	asset.FarmerGaps = []models.FarmerGap{}
+    for resultsIterator.HasNext() {
+        queryResponse, err := resultsIterator.Next()
+        if err != nil {
+            return nil, err
+        }
+
+        var gap models.FarmerGap
+        err = json.Unmarshal(queryResponse.Value, &gap)
+        if err != nil {
+            return nil, err
+        }
+
+        gap.IsCanDelete = true
+
+        salesQueryString := fmt.Sprintf(`{
+            "selector": {
+                "docType": "packing",
+                "gap": "%s"
+            }
+        }`, gap.CertID)
+
+		fmt.Printf("salesQueryString %v", salesQueryString)
+
+        salesResultsIterator, err := ctx.GetStub().GetQueryResult(salesQueryString)
+        if err != nil {
+            return nil, fmt.Errorf("failed to query related sales: %v", err)
+        }
+        defer salesResultsIterator.Close()
+
+        if salesResultsIterator.HasNext() {
+            gap.IsCanDelete = false
+        }
+
+        asset.FarmerGaps = append(asset.FarmerGaps, gap)
+    }
 
 	return &asset, nil
 }
@@ -161,10 +209,6 @@ func (s *SmartContract) GetAllFarmerProfile(ctx contractapi.TransactionContextIn
 		arrFarmer = []*models.FarmerTransactionResponse{}
 	}
 	
-	for _, farmer := range arrFarmer {
-		log.Printf("farmer item %v", farmer)
-	}
-
 	return &models.FarmerGetAllResponse{
 		Data:  "All Farmer",
 		Obj:   arrFarmer,
