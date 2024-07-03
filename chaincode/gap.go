@@ -112,6 +112,27 @@ func (s *SmartContract) ReadGap(ctx contractapi.TransactionContextInterface, id 
 		return nil, err
 	}
 
+	asset.IsCanDelete = true
+
+	salesQueryString := fmt.Sprintf(`{
+		"selector": {
+			"docType": "packing",
+			"gap": "%s"
+		}
+	}`, asset.CertID)
+
+	fmt.Printf("salesQueryString %v", salesQueryString)
+
+	salesResultsIterator, err := ctx.GetStub().GetQueryResult(salesQueryString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query related sales: %v", err)
+	}
+	defer salesResultsIterator.Close()
+
+	if salesResultsIterator.HasNext() {
+		asset.IsCanDelete = false
+	}
+
 	return &asset, nil
 }
 
@@ -472,7 +493,7 @@ func (s *SmartContract) CreateGapCsv(
 			Owner:       clientIDGap,
 			OrgName:     orgNameGap,
 			DocType:     models.Gap,
-			IsCanDelete: false,
+			IsCanDelete: true,
 			CreatedAt:   utils.GetTimeNow(),
 		}
 		

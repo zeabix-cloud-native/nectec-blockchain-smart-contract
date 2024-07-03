@@ -15,6 +15,7 @@ type TransactionGmp struct {
 	OrgName                    string    `json:"orgName"`
 	UpdatedAt                  time.Time `json:"updatedAt"`
 	CreatedAt                  time.Time `json:"createdAt"`
+	IsCanDelete 			   bool       `json:"isCanDelete"`
 }
 
 type FilterGetAllGmp struct {
@@ -33,6 +34,7 @@ type GmpTransactionResponse struct {
 	Address                    string    `json:"address"`
 	PackingHouseName           string    `json:"packingHouseName"`
 	UpdatedDate                string    `json:"updatedDate"`
+	IsCanDelete 			   bool       `json:"isCanDelete"`
 	Source                     string    `json:"source"`
 	UpdatedAt                  time.Time `json:"updatedAt"`
 	CreatedAt                  time.Time `json:"createdAt"`

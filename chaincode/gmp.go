@@ -105,7 +105,6 @@ func (s *SmartContract) DeleteGmp(ctx contractapi.TransactionContextInterface, i
 }
 
 func (s *SmartContract) ReadGmp(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionGmp, error) {
-
 	assetJSON, err := ctx.GetStub().GetState(id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read from world state: %v", err)
@@ -118,6 +117,27 @@ func (s *SmartContract) ReadGmp(ctx contractapi.TransactionContextInterface, id 
 	err = json.Unmarshal(assetJSON, &asset)
 	if err != nil {
 		return nil, err
+	}
+
+	asset.IsCanDelete = true
+
+	salesQueryString := fmt.Sprintf(`{
+		"selector": {
+			"docType": "packing",
+			"gmp": "%s"
+		}
+	}`, asset.PackingHouseRegisterNumber)
+
+	fmt.Printf("salesQueryString %v", salesQueryString)
+
+	salesResultsIterator, err := ctx.GetStub().GetQueryResult(salesQueryString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query related sales: %v", err)
+	}
+	defer salesResultsIterator.Close()
+
+	if salesResultsIterator.HasNext() {
+		asset.IsCanDelete = false
 	}
 
 	return &asset, nil
@@ -150,6 +170,29 @@ func (s *SmartContract) GetAllGMP(ctx contractapi.TransactionContextInterface, a
 	assets, err := utils.GmpFetchResultsWithPagination(ctx, inputGmp, filterGmp)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, asset := range assets {
+		asset.IsCanDelete = true
+
+		salesQueryString := fmt.Sprintf(`{
+			"selector": {
+				"docType": "packing",
+				"gmp": "%s"
+			}
+		}`, asset.PackingHouseRegisterNumber)
+
+		fmt.Printf("salesQueryString %v", salesQueryString)
+
+		salesResultsIterator, err := ctx.GetStub().GetQueryResult(salesQueryString)
+		if err != nil {
+			return nil, fmt.Errorf("failed to query related sales: %v", err)
+		}
+		defer salesResultsIterator.Close()
+
+		if salesResultsIterator.HasNext() {
+			asset.IsCanDelete = false
+		}
 	}
 
 	sort.Slice(assets, func(i, j int) bool {
@@ -283,6 +326,8 @@ func (s *SmartContract) CreateGmpCsv(
 			Owner:                      clientIDG,
 			DocType: 					models.Gmp,
 			OrgName:                    orgNameG,
+			CreatedAt:   utils.GetTimeNow(),
+			IsCanDelete: true,
 		}
 		assetJSON, err := json.Marshal(assetG)
 		if err != nil {

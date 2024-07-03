@@ -12,10 +12,13 @@ func GapSetFilter(input *models.FilterGetAllGap) map[string]interface{} {
 	var filter = map[string]interface{}{}
 	
 	if input.FarmerID != nil {
-		filter["farmerId"] = *input.FarmerID
+		filter["farmerId"] = input.FarmerID
 	}
+
 	if input.CertID != nil {
-		filter["certId"] = *input.CertID
+		filter["certId"] = map[string]interface{}{
+			"$regex":   *input.CertID,
+		}
 	}
 	if input.AreaCode != nil {
 		filter["areaCode"] = *input.AreaCode
