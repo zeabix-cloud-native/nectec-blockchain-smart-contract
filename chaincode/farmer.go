@@ -148,9 +148,10 @@ func (s *SmartContract) ReadFarmerProfile(ctx contractapi.TransactionContextInte
         salesQueryString := fmt.Sprintf(`{
             "selector": {
                 "docType": "packing",
+                "farmerId": "%s",
                 "gap": "%s"
             }
-        }`, gap.CertID)
+        }`, gap.FarmerID, gap.CertID)
 
 		fmt.Printf("salesQueryString %v", salesQueryString)
 
