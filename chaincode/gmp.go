@@ -196,7 +196,7 @@ func (s *SmartContract) GetAllGMP(ctx contractapi.TransactionContextInterface, a
 	}
 
 	sort.Slice(assets, func(i, j int) bool {
-		return assets[i].UpdatedAt.Before(assets[j].UpdatedAt)
+		return assets[i].UpdatedAt.After(assets[j].UpdatedAt)
 	})
 
 	if len(assets) == 0 {
