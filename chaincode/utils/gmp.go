@@ -10,63 +10,84 @@ import (
 func GmpSetFilter(input *models.FilterGetAllGmp) map[string]interface{} {
 	var filter = map[string]interface{}{}
 
-	if input.PackingHouseRegisterNumber != nil {
-		filter["packingHouseRegisterNumber"] = input.PackingHouseRegisterNumber
-	}
-
-	if input.PackingHouseName != nil {
-		filter["packingHouseName"] = map[string]interface{}{
-			"$regex": input.PackingHouseName,
-		}
-	}
-
-	if input.Address != nil {
-		filter["address"] = map[string]interface{}{
-			"$regex": input.Address,
-		}
-	}
-
 	filter["docType"] = "gmp"
 
 	return filter
 }
 
-func GmpFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, input *models.FilterGetAllGmp, filter map[string]interface{}) ([]*models.GmpTransactionResponse, error) {
-	selector := map[string]interface{}{
-		"selector": filter,
-	}
+func GmpFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, input *models.FilterGetAllGmp, filter map[string]interface{}) ([]*models.GmpTransactionResponse, int, error) {
+    search := input.Search
 
-	if input.Skip != 0 || input.Limit != 0 {
+    selector := map[string]interface{}{
+        "selector": filter,
+    }
+
+    if search != nil && *search != "" {
+        searchTerm := *search
+        selector["selector"] = map[string]interface{}{
+            "$and": []map[string]interface{}{
+                filter,
+                {
+                    "$or": []map[string]interface{}{
+                        {"packingHouseRegisterNumber": map[string]interface{}{"$regex": searchTerm}},
+                        {"packingHouseName": map[string]interface{}{"$regex": searchTerm}},
+                        {"address": map[string]interface{}{"$regex": searchTerm}},
+                    },
+                },
+            },
+        }
+    }
+
+    getStringGmp, err := json.Marshal(selector)
+    if err != nil {
+        return nil, 0, err
+    }
+
+    // Fetch total count of the results
+    resultsIterator, err := ctx.GetStub().GetQueryResult(string(getStringGmp))
+    if err != nil {
+        return nil, 0, err
+    }
+    defer resultsIterator.Close()
+
+    total := 0
+    for resultsIterator.HasNext() {
+        _, err := resultsIterator.Next()
+        if err != nil {
+            return nil, 0, err
+        }
+        total++
+    }
+
+    // Apply pagination
+	if input.Skip > 0 {
 		selector["skip"] = input.Skip
+	}
+	if input.Limit > 0 {
 		selector["limit"] = input.Limit
 	}
 
-	getStringGmp, err := json.Marshal(selector)
-	if err != nil {
-		return nil, err
-	}
+    queryGmp, _, err := ctx.GetStub().GetQueryResultWithPagination(string(getStringGmp), int32(input.Limit), "")
+    if err != nil {
+        return nil, 0, err
+    }
+    defer queryGmp.Close()
 
-	queryGmp, _, err := ctx.GetStub().GetQueryResultWithPagination(string(getStringGmp), int32(input.Limit), "")
-	if err != nil {
-		return nil, err
-	}
-	defer queryGmp.Close()
+    var dataGmp []*models.GmpTransactionResponse
+    for queryGmp.HasNext() {
+        queryRes, err := queryGmp.Next()
+        if err != nil {
+            return nil, 0, err
+        }
 
-	var dataGmp []*models.GmpTransactionResponse
-	for queryGmp.HasNext() {
-		queryRes, err := queryGmp.Next()
-		if err != nil {
-			return nil, err
-		}
+        var dataG models.GmpTransactionResponse
+        err = json.Unmarshal(queryRes.Value, &dataG)
+        if err != nil {
+            return nil, 0, err
+        }
 
-		var dataG models.GmpTransactionResponse
-		err = json.Unmarshal(queryRes.Value, &dataG)
-		if err != nil {
-			return nil, err
-		}
+        dataGmp = append(dataGmp, &dataG)
+    }
 
-		dataGmp = append(dataGmp, &dataG)
-	}
-
-	return dataGmp, nil
+    return dataGmp, total, nil
 }

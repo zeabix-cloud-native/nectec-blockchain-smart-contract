@@ -25,6 +25,7 @@ type FilterGetAllGmp struct {
 	PackingHouseRegisterNumber *string `json:"packingHouseRegisterNumber"`
 	PackingHouseName 		   *string `json:"packingHouseName"`
 	Address                    *string `json:"address"`
+	Search                     *string `json:"search"`
 }
 
 type GmpTransactionResponse struct {

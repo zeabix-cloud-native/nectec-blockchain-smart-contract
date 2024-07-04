@@ -46,7 +46,7 @@ type FarmerTransactionResponse struct {
 	Id        string    `json:"id"`
 	CertId    string    `json:"certId"`
 	ProfileImg    string    `json:"profileImg"`
-	FarmerGap []FarmerGap `json:"farmerGaps"`
+	FarmerGaps []FarmerGap `json:"farmerGaps"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	CreatedAt time.Time `json:"createdAt"`
 }

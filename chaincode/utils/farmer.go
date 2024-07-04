@@ -12,14 +12,6 @@ func FarmerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
 
 	filter["docType"] = "farmer"
 
-	if input.FarmerGap != "" {
-		filter["farmerGaps"] = map[string]interface{}{
-			"$elemMatch": map[string]interface{}{
-				"certId": input.FarmerGap,
-			},
-		}
-	}
-	
 	selector := map[string]interface{}{
 		"selector": filter,
 	}
@@ -53,8 +45,8 @@ func FarmerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
 			return nil, err
 		}
 		
-		 if dataF.FarmerGap == nil {
-			dataF.FarmerGap = []models.FarmerGap{}
+		if dataF.FarmerGaps == nil {
+		dataF.FarmerGaps = []models.FarmerGap{}
 	}
 
 		dataFarmers = append(dataFarmers, &dataF)

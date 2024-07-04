@@ -113,17 +113,21 @@ func (s *SmartContract) CreateExporterCsv(
 	var inputs []models.TransactionExporter 
 	var eventPayloads []models.TransactionExporter
 
+	// Unmarshal input arguments
 	errInputExporter := json.Unmarshal([]byte(args), &inputs)
-	utils.HandleError(errInputExporter)
+	if errInputExporter != nil {
+		return fmt.Errorf("failed to unmarshal input arguments: %v", errInputExporter)
+	}
 
+	// Process each input
 	for _, input := range inputs {
-		// err := ctx.GetClientIdentity().AssertAttributeValue("gmp.creator", "true")
-
+		// Get client's MSP ID
 		orgNameG, err := ctx.GetClientIdentity().GetMSPID()
 		if err != nil {
 			return fmt.Errorf("failed to get submitting client's MSP ID: %v", err)
 		}
 
+		// Check if the asset already exists
 		existExporter, err := utils.AssetExists(ctx, input.Id)
 		if err != nil {
 			return fmt.Errorf("error checking if asset exists: %v", err)
@@ -132,46 +136,53 @@ func (s *SmartContract) CreateExporterCsv(
 			return fmt.Errorf("the asset %s already exists", input.Id)
 		}
 
+		// Get client's identity
 		clientIDG, err := utils.GetIdentity(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to get submitting client's identity: %v", err)
 		}
 
-		assetG := models.TransactionExporter {
-			Id:                         input.Id,
-			CertId: 					input.CertId,
-			PlantType: 					input.PlantType,
-			Name: 						input.Name,
-			Address: 					input.Address,
-			District: 					input.District,
-			Province: 					input.Province,
-			Email: 						input.Email,
-			IssueDate: 					input.IssueDate,
-			ExpiredDate: 			 	input.ExpiredDate,
-			Owner:                      clientIDG,
-			OrgName:                    orgNameG,
-			DocType: 					models.Exporter,
+		// Create the asset
+		assetG := models.TransactionExporter{
+			Id:          input.Id,
+			CertId:      input.CertId,
+			PlantType:   input.PlantType,
+			Name:        input.Name,
+			Address:     input.Address,
+			District:    input.District,
+			Province:    input.Province,
+			Email:       input.Email,
+			IssueDate:   input.IssueDate,
+			ExpiredDate: input.ExpiredDate,
+			Owner:       clientIDG,
+			OrgName:     orgNameG,
+			DocType:     models.Exporter,
 		}
 
+		// Marshal the asset to JSON
 		assetJSON, err := json.Marshal(assetG)
-		eventPayloads = append(eventPayloads, assetG)
-
 		if err != nil {
 			return fmt.Errorf("failed to marshal asset JSON: %v", err)
 		}
 
+		// Put the asset state
 		err = ctx.GetStub().PutState(input.Id, assetJSON)
 		if err != nil {
 			return fmt.Errorf("failed to put state for asset %s: %v", input.Id, err)
 		}
 
+		// Add the asset to the event payloads
+		eventPayloads = append(eventPayloads, assetG)
 		fmt.Printf("Asset %s created successfully\n", input.Id)
 	}
 
+	// Marshal event payloads to JSON
 	eventPayloadJSON, err := json.Marshal(eventPayloads)
 	if err != nil {
-		return fmt.Errorf("failed to marshal asset JSON: %v", err)
+		return fmt.Errorf("failed to marshal event payload JSON: %v", err)
 	}
+
+	// Set the event
 	ctx.GetStub().SetEvent("batchCreatedExporterEvent", eventPayloadJSON)
 
 	return nil
@@ -220,14 +231,14 @@ func (s *SmartContract) DeleteExporter(ctx contractapi.TransactionContextInterfa
 	assetE, err := s.ReadExporter(ctx, id)
 	utils.HandleError(err)
 
-	clientIDExporter, err := utils.GetIdentity(ctx)
-	utils.HandleError(err)
+	// clientIDExporter, err := utils.GetIdentity(ctx)
+	// utils.HandleError(err)
 
-	if clientIDExporter != assetE.Owner {
-		return fmt.Errorf(utils.UNAUTHORIZE)
-	}
+	// if clientIDExporter != assetE.Owner {
+	// 	return fmt.Errorf(utils.UNAUTHORIZE)
+	// }
 
-	return ctx.GetStub().DelState(id)
+	return ctx.GetStub().DelState(assetE.Id)
 }
 
 func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterface, id string, newOwner string) error {
@@ -268,38 +279,21 @@ func (s *SmartContract) ReadExporter(ctx contractapi.TransactionContextInterface
 }
 
 func (s *SmartContract) GetAllExporter(ctx contractapi.TransactionContextInterface, args string) (*models.ExporterGetAllResponse, error) {
-
-	var filterE = map[string]interface{}{}
-
 	entityGetAll := models.ExporterFilterGetAll{}
 	interfaceE, err := utils.Unmarshal(args, entityGetAll)
 	if err != nil {
 		return nil, err
 	}
 	inputExporter := interfaceE.(*models.ExporterFilterGetAll)
-    filterExporter := utils.ExporterSetFilter(inputExporter)
+	filterExporter := utils.ExporterSetFilter(inputExporter)
 
-	queryStringE, err := utils.BuildQueryString(filterE)
-	if err != nil {
-		return nil, err
-	}
-
-	total, err := utils.CountTotalResults(ctx, queryStringE)
-	if err != nil {
-		return nil, err
-	}
-
-	if inputExporter.Skip > total {
-		return nil, fmt.Errorf(utils.SKIPOVER)
-	}
-
-	arrExporter, err := utils.ExporterFetchResultsWithPagination(ctx, inputExporter, filterExporter)
+	arrExporter, total, err := utils.ExporterFetchResultsWithPagination(ctx, inputExporter, filterExporter)
 	if err != nil {
 		return nil, err
 	}
 
 	sort.Slice(arrExporter, func(i, j int) bool {
-		return arrExporter[i].UpdatedAt.Before(arrExporter[j].UpdatedAt)
+		return arrExporter[i].UpdatedAt.After(arrExporter[j].UpdatedAt)
 	})
 
 	if len(arrExporter) == 0 {
@@ -312,6 +306,7 @@ func (s *SmartContract) GetAllExporter(ctx contractapi.TransactionContextInterfa
 		Total: total,
 	}, nil
 }
+
 
 func (s *SmartContract) FilterExporter(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionExporter, error) {
 	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")

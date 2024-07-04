@@ -144,70 +144,53 @@ func (s *SmartContract) ReadGmp(ctx contractapi.TransactionContextInterface, id 
 }
 
 func (s *SmartContract) GetAllGMP(ctx contractapi.TransactionContextInterface, args string) (*models.GmpGetAllResponse, error) {
+    entityGetAllGmp := models.FilterGetAllGmp{}
+    interfaceGmp, err := utils.Unmarshal(args, entityGetAllGmp)
+    if err != nil {
+        return nil, err
+    }
+    inputGmp := interfaceGmp.(*models.FilterGetAllGmp)
+    filterGmp := utils.GmpSetFilter(inputGmp)
 
-	entityGetAllGmp := models.FilterGetAllGmp{}
-	interfaceGmp, err := utils.Unmarshal(args, entityGetAllGmp)
-	if err != nil {
-		return nil, err
-	}
-	inputGmp := interfaceGmp.(*models.FilterGetAllGmp)
-	filterGmp := utils.GmpSetFilter(inputGmp)
+    assets, total, err := utils.GmpFetchResultsWithPagination(ctx, inputGmp, filterGmp)
+    if err != nil {
+        return nil, err
+    }
 
-	queryStringGmp, err := utils.BuildQueryString(filterGmp)
-	if err != nil {
-		return nil, err
-	}
+    for _, asset := range assets {
+        asset.IsCanDelete = true
 
-	total, err := utils.CountTotalResults(ctx, queryStringGmp)
-	if err != nil {
-		return nil, err
-	}
+        salesQueryString := fmt.Sprintf(`{
+            "selector": {
+                "docType": "packing",
+                "gmp": "%s"
+            }
+        }`, asset.PackingHouseRegisterNumber)
 
-	if inputGmp.Skip > total {
-		return nil, fmt.Errorf(utils.SKIPOVER)
-	}
+        salesResultsIterator, err := ctx.GetStub().GetQueryResult(salesQueryString)
+        if err != nil {
+            return nil, fmt.Errorf("failed to query related sales: %v", err)
+        }
+        defer salesResultsIterator.Close()
 
-	assets, err := utils.GmpFetchResultsWithPagination(ctx, inputGmp, filterGmp)
-	if err != nil {
-		return nil, err
-	}
+        if salesResultsIterator.HasNext() {
+            asset.IsCanDelete = false
+        }
+    }
 
-	for _, asset := range assets {
-		asset.IsCanDelete = true
+    sort.Slice(assets, func(i, j int) bool {
+        return assets[i].UpdatedAt.After(assets[j].UpdatedAt)
+    })
 
-		salesQueryString := fmt.Sprintf(`{
-			"selector": {
-				"docType": "packing",
-				"gmp": "%s"
-			}
-		}`, asset.PackingHouseRegisterNumber)
+    if len(assets) == 0 {
+        assets = []*models.GmpTransactionResponse{}
+    }
 
-		fmt.Printf("salesQueryString %v", salesQueryString)
-
-		salesResultsIterator, err := ctx.GetStub().GetQueryResult(salesQueryString)
-		if err != nil {
-			return nil, fmt.Errorf("failed to query related sales: %v", err)
-		}
-		defer salesResultsIterator.Close()
-
-		if salesResultsIterator.HasNext() {
-			asset.IsCanDelete = false
-		}
-	}
-
-	sort.Slice(assets, func(i, j int) bool {
-		return assets[i].UpdatedAt.After(assets[j].UpdatedAt)
-	})
-
-	if len(assets) == 0 {
-		assets = []*models.GmpTransactionResponse{}
-	}
-
-	return &models.GmpGetAllResponse{
-		Data:  "All Gmp",
-		Obj:   assets,
-		Total: total,
-	}, nil
+    return &models.GmpGetAllResponse{
+        Data:  "All Gmp",
+        Obj:   assets,
+        Total: total,
+    }, nil
 }
 
 func (s *SmartContract) GetGmpByPackingHouseNumber(ctx contractapi.TransactionContextInterface, packingHouseRegisterNumber string) (*models.GetByRegisterNumberResponse, error) {

@@ -50,7 +50,6 @@ func (s *SmartContract) CreateFarmerProfile(
 		OrgName:   orgName,
 		UpdatedAt: CreatedAt,
 		CreatedAt: CreatedAt,
-		FarmerGaps: input.FarmerGaps,
 		DocType: models.Farmer,
 	}
 	assetJSON, err := json.Marshal(asset)
@@ -75,7 +74,6 @@ func (s *SmartContract) UpdateFarmerProfile(ctx contractapi.TransactionContextIn
 	asset.ProfileImg = input.ProfileImg
 	asset.CertId = input.CertId
 	asset.UpdatedAt = UpdatedAt
-	asset.FarmerGaps = input.FarmerGaps
 
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
@@ -203,8 +201,59 @@ func (s *SmartContract) GetAllFarmerProfile(ctx contractapi.TransactionContextIn
 	}
 
 	sort.Slice(arrFarmer, func(i, j int) bool {
-		return arrFarmer[i].UpdatedAt.Before(arrFarmer[j].UpdatedAt)
+		return arrFarmer[i].UpdatedAt.After(arrFarmer[j].UpdatedAt)
 	})
+
+	for _, farmer := range arrFarmer {
+		queryString := fmt.Sprintf(`{
+			"selector": {
+				"docType": "gap",
+				"farmerId": "%s"
+			}
+		}`, farmer.Id)
+
+		resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+		if err != nil {
+			return nil, fmt.Errorf("failed to query related gaps: %v", err)
+		}
+		defer resultsIterator.Close()
+
+		farmer.FarmerGaps = []models.FarmerGap{}
+		for resultsIterator.HasNext() {
+			queryResponse, err := resultsIterator.Next()
+			if err != nil {
+				return nil, err
+			}
+
+			var gap models.FarmerGap
+			err = json.Unmarshal(queryResponse.Value, &gap)
+			if err != nil {
+				return nil, err
+			}
+
+			gap.IsCanDelete = true
+
+			salesQueryString := fmt.Sprintf(`{
+				"selector": {
+					"docType": "packing",
+					"farmerId": "%s",
+					"gap": "%s"
+				}
+			}`, gap.FarmerID, gap.CertID)
+
+			salesResultsIterator, err := ctx.GetStub().GetQueryResult(salesQueryString)
+			if err != nil {
+				return nil, fmt.Errorf("failed to query related sales: %v", err)
+			}
+			defer salesResultsIterator.Close()
+
+			if salesResultsIterator.HasNext() {
+				gap.IsCanDelete = false
+			}
+
+			farmer.FarmerGaps = append(farmer.FarmerGaps, gap)
+		}
+	}
 
 	if len(arrFarmer) == 0 {
 		arrFarmer = []*models.FarmerTransactionResponse{}
