@@ -86,14 +86,14 @@ func (s *SmartContract) DeleteFarmerProfile(ctx contractapi.TransactionContextIn
 	asset, err := s.ReadFarmerProfile(ctx, id)
 	utils.HandleError(err)
 
-	clientID, err := utils.GetIdentity(ctx)
-	utils.HandleError(err)
+	// clientID, err := utils.GetIdentity(ctx)
+	// utils.HandleError(err)
 
-	if clientID != asset.Owner {
-		return fmt.Errorf(utils.UNAUTHORIZE)
-	}
+	// if clientID != asset.Owner {
+	// 	return fmt.Errorf(utils.UNAUTHORIZE)
+	// }
 
-	return ctx.GetStub().DelState(id)
+	return ctx.GetStub().DelState(asset.Id)
 }
 
 func (s *SmartContract) ReadFarmerProfile(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionFarmer, error) {
