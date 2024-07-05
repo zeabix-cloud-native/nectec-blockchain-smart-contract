@@ -41,7 +41,7 @@ func ExporterSetFilter(input *models.ExporterFilterGetAll) map[string]interface{
 		toDate, err2 := FormatDate(*input.ExpireDateTo, true, offset)
 
 		if err1 == nil && err2 == nil {
-			filter["expireDate"] = map[string]interface{}{
+			filter["expiredDate"] = map[string]interface{}{
 				"$gte": fromDate,
 				"$lte": toDate,
 			}
