@@ -10,6 +10,8 @@ import (
 func NectecStaffFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, input *models.FilterGetAllNectecStaff) ([]*models.NectecStaffTransactionResponse, error) {
 	var filter = map[string]interface{}{}
 
+	filter["docType"] = "nectec"
+
 	selector := map[string]interface{}{
 		"selector": filter,
 	}
