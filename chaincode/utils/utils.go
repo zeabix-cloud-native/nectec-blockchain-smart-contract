@@ -29,6 +29,28 @@ type GetAllType struct {
 	Limit int `json:"limit"`
 }
 
+func FormatDate(dateStr string, isEndDate bool, offset int) (string, error) {
+	const inputFormat = "02-01-2006"
+	const outputFormat = time.RFC3339
+
+	// Parse the date in the specified timezone
+	location := time.FixedZone("UTC+7", offset*3600)
+	parsedDate, err := time.ParseInLocation(inputFormat, dateStr, location)
+	if err != nil {
+		return "", err
+	}
+
+	if isEndDate {
+		// Set the time to the end of the day
+		parsedDate = parsedDate.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
+	}
+
+	// Convert to UTC
+	utcDate := parsedDate.UTC()
+
+	return utcDate.Format(outputFormat), nil
+}
+
 func Unmarshal(args string, entityType interface{}) (interface{}, error) {
 	entityValue := reflect.New(reflect.TypeOf(entityType)).Interface()
 	err := json.Unmarshal([]byte(args), entityValue)

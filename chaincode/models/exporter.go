@@ -27,8 +27,8 @@ type ExporterFilterGetAll struct {
 	Search             *string  `json:"search"`
 	Province             *string  `json:"province"`
 	District             *string  `json:"district"`
-	IssueDateFrom     *string    `json:"issueDateFrom"`
-	IssueDateTo     *string    `json:"issueDateTo"`
+	CreatedAtFrom  *string `json:"createdAtFrom"`
+	CreatedAtTo *string `json:"createdAtTo"`
 	ExpireDateFrom     *string    `json:"ExpireDateFrom"`
 	ExpireDateTo     *string    `json:"ExpireDateTo"`
 }

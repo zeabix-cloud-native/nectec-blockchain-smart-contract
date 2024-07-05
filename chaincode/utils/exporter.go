@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
@@ -9,7 +10,8 @@ import (
 
 func ExporterSetFilter(input *models.ExporterFilterGetAll) map[string]interface{} {
     var filter = map[string]interface{}{}
-
+    const offset = 7 // UTC+7
+    
     filter["docType"] = "exporter"
 
     if input.Province != nil {
@@ -20,19 +22,33 @@ func ExporterSetFilter(input *models.ExporterFilterGetAll) map[string]interface{
         filter["district"] = *input.District
     }
 
-    if input.IssueDateFrom != nil && input.IssueDateTo != nil {
-        filter["issueDate"] = map[string]interface{}{
-            "$gte": *input.IssueDateFrom,
-            "$lte": *input.IssueDateTo,
-        }
-    }
+    if input.CreatedAtFrom != nil && input.CreatedAtTo != nil {
+		fromDate, err1 := FormatDate(*input.CreatedAtFrom, false, offset)
+		toDate, err2 := FormatDate(*input.CreatedAtTo, true, offset)
 
-    if input.ExpireDateFrom != nil && input.ExpireDateTo != nil {
-        filter["expiredDate"] = map[string]interface{}{
-            "$gte": *input.ExpireDateFrom,
-            "$lte": *input.ExpireDateTo,
-        }
-    }
+		if err1 == nil && err2 == nil {
+			filter["createdAt"] = map[string]interface{}{
+				"$gte": fromDate,
+				"$lte": toDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err1, err2)
+		}
+	}
+
+	if input.ExpireDateFrom != nil && input.ExpireDateTo != nil {
+		fromDate, err1 := FormatDate(*input.ExpireDateFrom, false, offset)
+		toDate, err2 := FormatDate(*input.ExpireDateTo, true, offset)
+
+		if err1 == nil && err2 == nil {
+			filter["expireDate"] = map[string]interface{}{
+				"$gte": fromDate,
+				"$lte": toDate,
+			}
+		} else {
+			fmt.Printf("Error formatting expire dates: %v, %v\n", err1, err2)
+		}
+	}
 
     return filter
 }

@@ -10,7 +10,8 @@ import (
 
 func GapSetFilter(input *models.FilterGetAllGap) map[string]interface{} {
 	var filter = map[string]interface{}{}
-	
+	const offset = 7 // UTC+7
+
 	if input.FarmerID != nil {
 		filter["farmerId"] = input.FarmerID
 	}
@@ -31,17 +32,31 @@ func GapSetFilter(input *models.FilterGetAllGap) map[string]interface{} {
 		}
 	}
 
-	if input.IssueDateFrom != nil && input.IssueDateTo != nil {
-		filter["issueDate"] = map[string]interface{}{
-			"$gte": *input.IssueDateFrom,
-			"$lte": *input.IssueDateTo,
+	if input.CreatedAtFrom != nil && input.CreatedAtTo != nil {
+		fromDate, err1 := FormatDate(*input.CreatedAtFrom, false, offset)
+		toDate, err2 := FormatDate(*input.CreatedAtTo, true, offset)
+
+		if err1 == nil && err2 == nil {
+			filter["createdAt"] = map[string]interface{}{
+				"$gte": fromDate,
+				"$lte": toDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err1, err2)
 		}
 	}
 
 	if input.ExpireDateFrom != nil && input.ExpireDateTo != nil {
-		filter["expireDate"] = map[string]interface{}{
-			"$gte": *input.ExpireDateFrom,
-			"$lte": *input.ExpireDateTo,
+		fromDate, err1 := FormatDate(*input.ExpireDateFrom, false, offset)
+		toDate, err2 := FormatDate(*input.ExpireDateTo, true, offset)
+
+		if err1 == nil && err2 == nil {
+			filter["expireDate"] = map[string]interface{}{
+				"$gte": fromDate,
+				"$lte": toDate,
+			}
+		} else {
+			fmt.Printf("Error formatting expire dates: %v, %v\n", err1, err2)
 		}
 	}
 
@@ -68,25 +83,24 @@ func GapSetFilter(input *models.FilterGetAllGap) map[string]interface{} {
 }
 
 func GapFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, input *models.FilterGetAllGap, filter map[string]interface{}) ([]*models.GapTransactionResponse, error) {
-
 	selector := map[string]interface{}{
 		"selector": filter,
 	}
 
 	if input.CertID != nil && *input.CertID != "" {
-        searchTerm := *input.CertID
-        selector["selector"] = map[string]interface{}{
-            "$and": []map[string]interface{}{
-                filter,
-                {
-                    "$or": []map[string]interface{}{
-                        {"certId": map[string]interface{}{"$regex": searchTerm}},
+		searchTerm := *input.CertID
+		selector["selector"] = map[string]interface{}{
+			"$and": []map[string]interface{}{
+				filter,
+				{
+					"$or": []map[string]interface{}{
+						{"certId": map[string]interface{}{"$regex": searchTerm}},
 						{"displayCertId": map[string]interface{}{"$regex": searchTerm}},
-                    },
-                },
-            },
-        }
-    }
+					},
+				},
+			},
+		}
+	}
 
 	if input.Skip > 0 {
 		selector["skip"] = input.Skip
@@ -124,3 +138,4 @@ func GapFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, 
 
 	return assets, nil
 }
+

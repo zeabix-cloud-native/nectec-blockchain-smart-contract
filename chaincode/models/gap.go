@@ -36,7 +36,8 @@ type FilterGetAllGap struct {
 	AreaRaiFrom  *float32 `json:"areaRaiFrom"`
 	AreaRaiTo    *float32 `json:"areaRaiTo"`
 	AvailableGap *string  `json:"availableGap"`
-	IssueDateFrom  *string `json:"issueDateFrom"`
+	CreatedAtFrom  *string `json:"createdAtFrom"`
+	CreatedAtTo *string `json:"createdAtTo"`
 	IssueDateTo    *string `json:"issueDateTo"`
 	ExpireDateFrom  *string `json:"expireDateFrom"`
 	ExpireDateTo    *string `json:"expireDateTo"`
