@@ -9,6 +9,7 @@ type DocType string
 
 // Doc Type
 const (
+	Nectec DocType = "nectec"
 	Farmer DocType = "farmer"
 	Gap DocType = "gap"
 	Gmp DocType = "gmp"

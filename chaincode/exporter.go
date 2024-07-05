@@ -52,6 +52,7 @@ func (s *SmartContract) CreateExporter(
 		Address:    input.Address,
 		District:    input.District,
 		Province:    input.Province,
+		PostCode:    input.PostCode,
 		Email:    input.Email,
 		IssueDate:    input.IssueDate,
 		ExpiredDate:    input.ExpiredDate,
@@ -151,12 +152,14 @@ func (s *SmartContract) CreateExporterCsv(
 			Address:     input.Address,
 			District:    input.District,
 			Province:    input.Province,
+			PostCode:    input.PostCode,
 			Email:       input.Email,
 			IssueDate:   input.IssueDate,
 			ExpiredDate: input.ExpiredDate,
 			Owner:       clientIDG,
 			OrgName:     orgNameG,
 			DocType:     models.Exporter,
+			CreatedAt:   utils.GetTimeNow(),
 		}
 
 		// Marshal the asset to JSON
@@ -214,11 +217,13 @@ func (s *SmartContract) UpdateExporter(ctx contractapi.TransactionContextInterfa
 	asset.PlantType = input.PlantType
 	asset.Name = input.Name
 	asset.Address = input.Address
+	asset.PostCode = input.PostCode
 	asset.District = input.District
 	asset.Province = input.Province
 	asset.Email = input.Email
 	asset.IssueDate = input.IssueDate
 	asset.ExpiredDate = input.ExpiredDate
+	asset.UpdatedAt = utils.GetTimeNow()
 
 	assetJSON, errE := json.Marshal(asset)
 	utils.HandleError(errE)
@@ -293,7 +298,7 @@ func (s *SmartContract) GetAllExporter(ctx contractapi.TransactionContextInterfa
 	}
 
 	sort.Slice(arrExporter, func(i, j int) bool {
-		return arrExporter[i].UpdatedAt.After(arrExporter[j].UpdatedAt)
+		return arrExporter[i].CreatedAt.After(arrExporter[j].CreatedAt)
 	})
 
 	if len(arrExporter) == 0 {

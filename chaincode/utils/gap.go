@@ -15,11 +15,6 @@ func GapSetFilter(input *models.FilterGetAllGap) map[string]interface{} {
 		filter["farmerId"] = input.FarmerID
 	}
 
-	if input.CertID != nil {
-		filter["certId"] = map[string]interface{}{
-			"$regex":   *input.CertID,
-		}
-	}
 	if input.AreaCode != nil {
 		filter["areaCode"] = *input.AreaCode
 	}
@@ -77,6 +72,21 @@ func GapFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, 
 	selector := map[string]interface{}{
 		"selector": filter,
 	}
+
+	if input.CertID != nil && *input.CertID != "" {
+        searchTerm := *input.CertID
+        selector["selector"] = map[string]interface{}{
+            "$and": []map[string]interface{}{
+                filter,
+                {
+                    "$or": []map[string]interface{}{
+                        {"certId": map[string]interface{}{"$regex": searchTerm}},
+						{"displayCertId": map[string]interface{}{"$regex": searchTerm}},
+                    },
+                },
+            },
+        }
+    }
 
 	if input.Skip > 0 {
 		selector["skip"] = input.Skip

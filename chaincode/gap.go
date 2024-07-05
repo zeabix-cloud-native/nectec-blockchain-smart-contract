@@ -293,7 +293,7 @@ func (s *SmartContract) GetAllGAP(ctx contractapi.TransactionContextInterface, a
     }
 
 	sort.Slice(assets, func(i, j int) bool {
-		return assets[i].UpdatedAt.After(assets[j].UpdatedAt)
+		return assets[i].CreatedAt.After(assets[j].CreatedAt)
 	})
 
 	if len(assets) == 0 {

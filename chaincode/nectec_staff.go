@@ -36,15 +36,17 @@ func (s *SmartContract) CreateNectecStaff(
 	clientID, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
-	TimeNstda := utils.GetTimeNow()
+	CreatedAt := utils.GetTimeNow()
 
 	asset := models.TransactionNectecStaff{
 		Id:        input.Id,
 		CertId:    input.CertId,
+		ProfileImg:    input.ProfileImg,
 		Owner:     clientID,
 		OrgName:   orgName,
-		UpdatedAt: TimeNstda,
-		CreatedAt: TimeNstda,
+		UpdatedAt: CreatedAt,
+		CreatedAt: CreatedAt,
+		DocType: models.Nectec,
 	}
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
@@ -86,14 +88,69 @@ func (s *SmartContract) DeleteNectecStaff(ctx contractapi.TransactionContextInte
 	assetNstda, err := s.ReadNectecStaff(ctx, id)
 	utils.HandleError(err)
 
-	clientIDNstda, err := utils.GetIdentity(ctx)
-	utils.HandleError(err)
+	// clientIDNstda, err := utils.GetIdentity(ctx)
+	// utils.HandleError(err)
 
-	if clientIDNstda != assetNstda.Owner {
-		return fmt.Errorf(utils.UNAUTHORIZE)
+	// if clientIDNstda != assetNstda.Owner {
+	// 	return fmt.Errorf(utils.UNAUTHORIZE)
+	// }
+
+	return ctx.GetStub().DelState(assetNstda.Id)
+}
+
+func (s *SmartContract) DeleteNectecStaffFromCertId(ctx contractapi.TransactionContextInterface, certId string) error {
+	queryString := fmt.Sprintf(`{"selector":{"certId":"%s"}}`, certId)
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+	if err != nil {
+		return fmt.Errorf("failed to query certId: %v", err)
+	}
+	defer resultsIterator.Close()
+
+	if !resultsIterator.HasNext() {
+		return fmt.Errorf("no asset found with certId: %s", certId)
 	}
 
-	return ctx.GetStub().DelState(id)
+	// Assuming there is only one asset per certId. If there could be multiple, you'd need to handle that case.
+	queryResponse, err := resultsIterator.Next()
+	if err != nil {
+		return fmt.Errorf("failed to get query response: %v", err)
+	}
+
+	// Convert queryResponse to asset structure if needed, e.g., NectecStaff
+	var assetNstda models.TransactionNectecStaff
+	err = json.Unmarshal(queryResponse.Value, &assetNstda)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal query response: %v", err)
+	}
+
+	return ctx.GetStub().DelState(assetNstda.Id)
+}
+
+func (s *SmartContract) QueryNectecStaffByCertId(ctx contractapi.TransactionContextInterface, certId string) ([]*models.TransactionNectecStaff, error) {
+	queryString := fmt.Sprintf(`{"selector":{"certId":"%s","docType": "nectec}}`, certId)
+
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query by certId: %v", err)
+	}
+	defer resultsIterator.Close()
+
+	var assets []*models.TransactionNectecStaff
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, fmt.Errorf("failed to iterate results: %v", err)
+		}
+
+		var asset models.TransactionNectecStaff
+		err = json.Unmarshal(queryResponse.Value, &asset)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal asset: %v", err)
+		}
+		assets = append(assets, &asset)
+	}
+
+	return assets, nil
 }
 
 func (s *SmartContract) ReadNectecStaff(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionNectecStaff, error) {

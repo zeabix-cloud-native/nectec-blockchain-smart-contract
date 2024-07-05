@@ -11,6 +11,7 @@ type TransactionExporter struct {
 	Address     string    `json:"address"`
 	District     string    `json:"district"`
 	Province     string    `json:"province"`
+	PostCode     string    `json:"postCode"`
 	Email     string    `json:"email"`
 	IssueDate     string    `json:"issueDate"`
 	ExpiredDate     string    `json:"expiredDate"`
@@ -37,6 +38,7 @@ type ExporterTransactionResponse struct {
 	CertId    string    `json:"certId"`
 	Owner     string    `json:"owner"`
 	PlantType     string    `json:"plantType"`
+	PostCode     string    `json:"postCode"`
 	Name     string    `json:"name"`
 	Address     string    `json:"address"`
 	District     string    `json:"district"`
