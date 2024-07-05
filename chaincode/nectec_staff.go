@@ -172,6 +172,7 @@ func (s *SmartContract) ReadNectecStaff(ctx contractapi.TransactionContextInterf
 	return &asset, nil
 }
 
+
 func (s *SmartContract) GetAllNectecStaff(ctx contractapi.TransactionContextInterface, args string) (*models.GetAllNectecStaffResponse, error) {
 
 	var filterNstda = map[string]interface{}{}
@@ -183,27 +184,13 @@ func (s *SmartContract) GetAllNectecStaff(ctx contractapi.TransactionContextInte
 	}
 	input := interfaceNstda.(*models.FilterGetAllNectecStaff)
 
-	queryStringNstda, err := utils.BuildQueryString(filterNstda)
-	if err != nil {
-		return nil, err
-	}
-
-	total, err := utils.CountTotalResults(ctx, queryStringNstda)
-	if err != nil {
-		return nil, err
-	}
-
-	if input.Skip > total {
-		return nil, utils.ReturnError(utils.SKIPOVER)
-	}
-
-	arrNstda, err := utils.NectecStaffFetchResultsWithPagination(ctx, input)
+	arrNstda, total, err := utils.NectecStaffFetchResultsWithPagination(ctx, input, filterNstda)
 	if err != nil {
 		return nil, err
 	}
 
 	sort.Slice(arrNstda, func(i, j int) bool {
-		return arrNstda[i].UpdatedAt.Before(arrNstda[j].UpdatedAt)
+		return arrNstda[i].UpdatedAt.After(arrNstda[j].UpdatedAt)
 	})
 
 	if len(arrNstda) == 0 {
