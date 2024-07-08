@@ -21,6 +21,8 @@ type TransactionPacking struct {
 	ProcessStatus  int       `json:"processStatus"`
 	SellingStep    int    `json:"sellingStep"`
 	Owner          string    `json:"owner"`
+	Province          string    `json:"province"`
+	District          string    `json:"district"`
 	TotalSold        float32   `json:"totalSold"`
 	OrgName        string    `json:"orgName"`
 	UpdatedAt      time.Time `json:"updatedAt"`
@@ -35,6 +37,8 @@ type FilterGetAllPacking struct {
 	PackerId           *string  `json:"packerId"`
 	FarmerID					 *string  `json:"farmerId"` 
 	CertID					 	 *string  `json:"certId"` 
+	Province					 	 *string  `json:"province"` 
+	District					 	 *string  `json:"district"` 
 	Gap                *string  `json:"gap"`
 	StartDate          *string  `json:"startDate"`
 	EndDate            *string  `json:"endDate"`
@@ -67,6 +71,8 @@ type PackingTransactionResponse struct {
 	SellingStep       int    `json:"sellingStep"`
 	UpdatedAt     time.Time `json:"updatedAt"`
 	CreatedAt     time.Time `json:"createdAt"`
+	Province          string    `json:"province"`
+	District          string    `json:"district"`
 }
 
 type PackingGetAllResponse struct {

@@ -10,7 +10,6 @@ import (
 
 func GapSetFilter(input *models.FilterGetAllGap) map[string]interface{} {
 	var filter = map[string]interface{}{}
-	const offset = 7 // UTC+7
 
 	if input.FarmerID != nil {
 		filter["farmerId"] = input.FarmerID

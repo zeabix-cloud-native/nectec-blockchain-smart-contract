@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
@@ -27,11 +28,25 @@ func PackingSetFilter(input *models.FilterGetAllPacking) map[string]interface{} 
 	if (input.FarmerID != nil) {
 		filter["farmerId"] = *input.FarmerID
 	}
+	
+	if input.Province != nil {
+		filter["province"] = *input.Province
+	}
+	if input.District != nil {
+		filter["district"] = *input.District
+	}
 
 	if input.StartDate != nil && input.EndDate != nil {
-		filter["createdAt"] = map[string]interface{}{
-			"$gte": *input.StartDate,
-			"$lte": *input.EndDate,
+		fromDate, err1 := FormatDate(*input.StartDate, false, offset)
+		toDate, err2 := FormatDate(*input.EndDate, true, offset)
+
+		if err1 == nil && err2 == nil {
+			filter["createdAt"] = map[string]interface{}{
+				"$gte": fromDate,
+				"$lte": toDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err1, err2)
 		}
 	}
 
@@ -59,7 +74,7 @@ func PackingFetchResultsWithPagination(ctx contractapi.TransactionContextInterfa
 	if searchExists {
 		delete(filter, "search")
 	}
-
+	
 	// Initialize the base selector
 	selector := map[string]interface{}{
 		"selector": filter,
@@ -73,11 +88,12 @@ func PackingFetchResultsWithPagination(ctx contractapi.TransactionContextInterfa
 					"$or": []map[string]interface{}{
 						{"gmp": map[string]interface{}{"$regex": search}},
 						{"packingHouseName": map[string]interface{}{"$regex": search}},
+						{"gap": map[string]interface{}{"$regex": search}},
 					},
 				},
 			},
 		}
-	}
+	} 
 
 	if input.Skip != 0 || input.Limit != 0 {
 		selector["skip"] = input.Skip

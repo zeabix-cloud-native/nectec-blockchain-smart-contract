@@ -52,6 +52,8 @@ func (s *SmartContract) CreatePacking(
 		Remark:         input.Remark,
 		CancelReason:   input.CancelReason,
 		PackerId:       input.PackerId,
+		Province:       input.Province,
+		District:       input.District,
 		Gmp:            input.Gmp,
 		Gap:            input.Gap,
 		ProcessStatus:  input.ProcessStatus,
@@ -90,6 +92,8 @@ func (s *SmartContract) UpdatePacking(ctx contractapi.TransactionContextInterfac
 	asset.ApprovedDate = input.ApprovedDate
 	asset.ApprovedType = input.ApprovedType
 	asset.FinalWeight = input.FinalWeight
+	asset.Province = input.Province
+	asset.District = input.District
 	asset.Remark = input.Remark
 	asset.CancelReason = input.CancelReason
 	asset.PackerId = input.PackerId // not update

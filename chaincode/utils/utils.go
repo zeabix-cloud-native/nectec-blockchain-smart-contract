@@ -20,6 +20,7 @@ const (
 	DATAUNMARSHAL string = "unmarshal json string"
 )
 
+const offset = 7 
 type SmartContract struct {
 	contractapi.Contract
 }

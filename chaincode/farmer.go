@@ -40,7 +40,7 @@ func (s *SmartContract) CreateFarmerProfile(
 	clientID, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
-	CreatedAt := utils.GetTimeNow()
+	// CreatedAt := utils.GetTimeNow()
 
 	asset := models.TransactionFarmer{
 		Id:        input.Id,
@@ -48,8 +48,8 @@ func (s *SmartContract) CreateFarmerProfile(
 		ProfileImg:    input.ProfileImg,
 		Owner:     clientID,
 		OrgName:   orgName,
-		UpdatedAt: CreatedAt,
-		CreatedAt: CreatedAt,
+		// UpdatedAt: CreatedAt,
+		// CreatedAt: CreatedAt,
 		DocType: models.Farmer,
 	}
 	assetJSON, err := json.Marshal(asset)

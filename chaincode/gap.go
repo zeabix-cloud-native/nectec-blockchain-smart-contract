@@ -191,7 +191,7 @@ func (s *SmartContract) GetGapByFarmerID(ctx contractapi.TransactionContextInter
 
 func (s *SmartContract) GetGapByCertID(ctx contractapi.TransactionContextInterface, certID string) (*models.GetGapByCertIdResponse, error) {
 	// Get the asset using CertID
-	queryKeyGap := fmt.Sprintf(`{"selector":{"certId":"%s"}}`, certID)
+	queryKeyGap := fmt.Sprintf(`{"selector":{"certId":"%s", "docType": "gap"}}`, certID)
 
 	resultsIteratorGap, err := ctx.GetStub().GetQueryResult(queryKeyGap)
 	var asset *models.GapTransactionResponse
@@ -475,7 +475,7 @@ func (s *SmartContract) CreateGapCsv(
 			return fmt.Errorf("failed to get submitting client's identity: %v", err)
 		}
 
-		assetGap := models.TransactionGap{
+		assetGap := models.TransactionGap {
 			Id:          				 input.Id,
 			DisplayCertID:       input.DisplayCertID,
 			CertID:      input.CertID,
@@ -494,7 +494,7 @@ func (s *SmartContract) CreateGapCsv(
 			OrgName:     orgNameGap,
 			DocType:     models.Gap,
 			IsCanDelete: true,
-			CreatedAt:   utils.GetTimeNow(),
+			// CreatedAt:   utils.GetTimeNow(),
 		}
 		
 		assetJSON, err := json.Marshal(assetGap)
