@@ -309,7 +309,7 @@ func (s *SmartContract) CreateGmpCsv(
 			Owner:                      clientIDG,
 			DocType: 					models.Gmp,
 			OrgName:                    orgNameG,
-			CreatedAt:   utils.GetTimeNow(),
+			// CreatedAt:   utils.GetTimeNow(),
 			IsCanDelete: true,
 		}
 		assetJSON, err := json.Marshal(assetG)
