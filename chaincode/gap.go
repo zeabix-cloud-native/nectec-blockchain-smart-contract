@@ -411,7 +411,7 @@ func (s *SmartContract) UpdateMultipleGap(
 		if err != nil {
 			return fmt.Errorf("failed to unmarshal existing asset: %v", err)
 		}
-		UpdatedGap := utils.GetTimeNow()
+		//UpdatedGap := utils.GetTimeNow()
 		
 		existingAsset.Id =          				 input.Id
 		existingAsset.DisplayCertID =       input.DisplayCertID
@@ -424,7 +424,7 @@ func (s *SmartContract) UpdateMultipleGap(
 		existingAsset.ExpireDate =  input.ExpireDate
 		existingAsset.District =    input.District
 		existingAsset.Province =    input.Province
-		existingAsset.UpdatedAt =		UpdatedGap
+		//existingAsset.UpdatedAt =		UpdatedGap
 		existingAsset.Source =      input.Source
 		existingAsset.FarmerID =    input.FarmerID
 		existingAsset.UpdatedDate = input.UpdatedDate
