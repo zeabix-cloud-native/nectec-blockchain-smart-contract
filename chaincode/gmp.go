@@ -34,8 +34,6 @@ func (s *SmartContract) CreateGMP(
 	clientID, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
-	TimeGmp := utils.GetTimeNow()
-
 	asset := models.TransactionGmp{
 		Id:                         input.Id,
 		PackerId: 									input.PackerId,		
@@ -47,8 +45,8 @@ func (s *SmartContract) CreateGMP(
 		Owner:                      clientID,
 		OrgName:                    orgName,
 		DocType: 					models.Gmp,
-		UpdatedAt:                  TimeGmp,
-		CreatedAt:                  TimeGmp,
+		CreatedAt:  				input.CreatedAt,
+		UpdatedAt:  				input.UpdatedAt,
 	}
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
@@ -66,13 +64,12 @@ func (s *SmartContract) UpdateGmp(ctx contractapi.TransactionContextInterface, a
 	asset, err := s.ReadGmp(ctx, input.Id)
 	utils.HandleError(err)
 
-	clientID, err := utils.GetIdentity(ctx)
-	utils.HandleError(err)
-	if clientID != asset.Owner {
-		return utils.ReturnError(utils.UNAUTHORIZE)
-	}
+	// clientID, err := utils.GetIdentity(ctx)
+	// utils.HandleError(err)
+	// if clientID != asset.Owner {
+	// 	return utils.ReturnError(utils.UNAUTHORIZE)
+	// }
 
-	UpdatedGmp := utils.GetTimeNow()
 
 	asset.Id = input.Id
 	asset.PackerId = input.PackerId
@@ -81,7 +78,7 @@ func (s *SmartContract) UpdateGmp(ctx contractapi.TransactionContextInterface, a
 	asset.PackingHouseName = input.PackingHouseName
 	asset.UpdatedDate = input.UpdatedDate
 	asset.Source = input.Source
-	asset.UpdatedAt = UpdatedGmp
+	asset.UpdatedAt = input.UpdatedAt
 
 	assetJSON, errG := json.Marshal(asset)
 	utils.HandleError(errG)
@@ -309,6 +306,8 @@ func (s *SmartContract) CreateGmpCsv(
 			Owner:                      clientIDG,
 			DocType: 					models.Gmp,
 			OrgName:                    orgNameG,
+			CreatedAt:  				input.CreatedAt,		
+			UpdatedAt:  				input.UpdatedAt,		
 			// CreatedAt:   utils.GetTimeNow(),
 			IsCanDelete: true,
 		}

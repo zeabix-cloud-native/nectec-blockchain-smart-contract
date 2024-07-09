@@ -4,10 +4,13 @@ import "time"
 
 type TransactionPacker struct {
 	Id        string    `json:"id"`
-	CertId    string    `json:"certId"`
-	UserId    string    `json:"userId"`
+	CertId    *string    `json:"certId"`
+	UserId    *string    `json:"userId"`
 	Owner     string    `json:"owner"`
 	OrgName   string    `json:"orgName"`
+	PackingHouseName           *string    `json:"packingHouseName"`
+	PackingHouseRegisterNumber *string    `json:"packingHouseRegisterNumber"`
+	IsCanExport   *bool  `json:"isCanExport"`
 	PackerGmp PackerGmp `json:"packerGmp"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	CreatedAt time.Time `json:"createdAt"`
@@ -17,7 +20,10 @@ type TransactionPacker struct {
 type FilterGetAllPacker struct {
 	Skip  int `json:"skip"`
 	Limit int `json:"limit"`
+	Search                     *string `json:"search"`
 	PackerGmp string `json:"packerGmp"`
+	PackingHouseName           string    `json:"packingHouseName"`
+	PackingHouseRegisterNumber string    `json:"packingHouseRegisterNumber"`
 }
 
 type PackerGmp struct {
@@ -25,6 +31,7 @@ type PackerGmp struct {
 	PackerId 				   string    `json:"packerId"`
 	PackingHouseRegisterNumber string    `json:"packingHouseRegisterNumber"`
 	Address                    string    `json:"address"`
+	IsCanExport   			   bool  `json:"isCanExport"`
 	PackingHouseName           string    `json:"packingHouseName"`
 	UpdatedDate                string    `json:"updatedDate"`
 	Source                     string    `json:"source"`
@@ -38,12 +45,21 @@ type PackerTransactionResponse struct {
 	Id        string    `json:"id"`
 	CertId    string    `json:"certId"`
 	UserId    string    `json:"userId"`
+	IsCanExport   			   bool  `json:"isCanExport"`
+	PackerGmp PackerGmp `json:"packerGmp"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	CreatedAt time.Time `json:"createdAt"`
+	PackingHouseName           string    `json:"packingHouseName"`
+	PackingHouseRegisterNumber string    `json:"packingHouseRegisterNumber"`
 }
 
 type PackerGetAllResponse struct {
 	Data  string                `json:"data"`
 	Obj   []*PackerTransactionResponse `json:"obj"`
 	Total int                   `json:"total"`
+}
+
+type PackerByIdResponse struct {
+	Data string              `json:"data"`
+	Obj  *PackerTransactionResponse `json:"obj"`
 }

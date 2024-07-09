@@ -37,17 +37,15 @@ func (s *SmartContract) CreatePacker(
 	clientID, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
-	TimePacker := utils.GetTimeNow()
-
 	asset := models.TransactionPacker{
 		Id:        input.Id,
 		CertId:    input.CertId,
 		UserId:    input.UserId,
-		PackerGmp: input.PackerGmp,
+		IsCanExport: input.IsCanExport,
+		PackingHouseName: input.PackingHouseName,
+		PackingHouseRegisterNumber: input.PackingHouseRegisterNumber,
 		Owner:     clientID,
 		OrgName:   orgName,
-		UpdatedAt: TimePacker,
-		CreatedAt: TimePacker,
 		DocType:   models.Packer,
 	}
 	assetJSON, err := json.Marshal(asset)
@@ -56,51 +54,130 @@ func (s *SmartContract) CreatePacker(
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
-func (s *SmartContract) UpdatePacker(ctx contractapi.TransactionContextInterface,
-	args string) error {
+func (s *SmartContract) UpdatePacker(ctx contractapi.TransactionContextInterface, args string) error {
+    entityPacker := models.TransactionPacker{}
+    inputInterface, err := utils.Unmarshal(args, &entityPacker)
+    if err != nil {
+        return err
+    }
+    input := inputInterface.(*models.TransactionPacker)
 
-	entityPacker := models.TransactionPacker{}
-	inputInterface, err := utils.Unmarshal(args, entityPacker)
-	utils.HandleError(err)
-	input := inputInterface.(*models.TransactionPacker)
+    asset, err := s.ReadPacker(ctx, input.Id)
+    if err != nil {
+        return err
+    }
 
-	asset, err := s.ReadPacker(ctx, input.Id)
-	utils.HandleError(err)
+    // clientID, err := utils.GetIdentity(ctx)
+    // if err != nil {
+    //     return err
+    // }
 
-	clientID, err := utils.GetIdentity(ctx)
-	utils.HandleError(err)
+    // if clientID != asset.Owner {
+    //     return fmt.Errorf(utils.UNAUTHORIZE)
+    // }
 
-	if clientID != asset.Owner {
-		return fmt.Errorf(utils.UNAUTHORIZE)
-	}
+    if input.CertId != nil {
+        asset.CertId = input.CertId
+    }
+    if input.UserId != nil {
+        asset.UserId = input.UserId
+    }
+    if input.PackingHouseName != nil {
+        asset.PackingHouseName = input.PackingHouseName
+    }
+    if input.PackingHouseRegisterNumber != nil {
+        asset.PackingHouseRegisterNumber = input.PackingHouseRegisterNumber
+    }
+    if input.IsCanExport != nil {
+        asset.IsCanExport = input.IsCanExport
+    }
+    assetJSON, errP := json.Marshal(asset)
+    if errP != nil {
+        return errP
+    }
 
-	UpdatedPacker := utils.GetTimeNow()
-
-	asset.Id = input.Id
-	asset.CertId = input.CertId
-	asset.UserId = input.UserId
-	asset.UpdatedAt = UpdatedPacker
-	asset.PackerGmp = input.PackerGmp
-
-	assetJSON, errP := json.Marshal(asset)
-	utils.HandleError(errP)
-
-	return ctx.GetStub().PutState(input.Id, assetJSON)
+    return ctx.GetStub().PutState(input.Id, assetJSON)
 }
+
 
 func (s *SmartContract) DeletePacker(ctx contractapi.TransactionContextInterface, id string) error {
 
 	assetPacker, err := s.ReadPacker(ctx, id)
 	utils.HandleError(err)
 
-	clientIDPacker, err := utils.GetIdentity(ctx)
-	utils.HandleError(err)
+	// clientIDPacker, err := utils.GetIdentity(ctx)
+	// utils.HandleError(err)
 
-	if clientIDPacker != assetPacker.Owner {
-		return fmt.Errorf(utils.UNAUTHORIZE)
+	// if clientIDPacker != assetPacker.Owner {
+	// 	return fmt.Errorf(utils.UNAUTHORIZE)
+	// }
+
+	return ctx.GetStub().DelState(assetPacker.Id)
+}
+
+func (s *SmartContract) GetPackerByPackerId(ctx contractapi.TransactionContextInterface, packerId string) (*models.PackerByIdResponse, error) {
+	queryKeyFarmer := fmt.Sprintf(`{"selector":{"userId":"%s", "docType": "packer"}}`, packerId)
+
+	resultsIteratorFarmer, err := ctx.GetStub().GetQueryResult(queryKeyFarmer)
+	var asset *models.PackerTransactionResponse
+	resData := "Get packer by packerId"
+	if err != nil {
+		return nil, fmt.Errorf("error querying chaincode: %v", err)
+	}
+	defer resultsIteratorFarmer.Close()
+
+	if !resultsIteratorFarmer.HasNext() {
+		resData = "Not found packer by packerId"
+
+		return &models.PackerByIdResponse{
+			Data: resData,
+			Obj:  asset,
+		}, nil
 	}
 
-	return ctx.GetStub().DelState(id)
+	queryResponse, err := resultsIteratorFarmer.Next()
+	if err != nil {
+		return nil, fmt.Errorf("error getting next query result: %v", err)
+	}
+
+	err = json.Unmarshal(queryResponse.Value, &asset)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling asset JSON: %v", err)
+	}
+
+	// Attach related GMP documents
+	queryString := fmt.Sprintf(`{
+		"selector": {
+			"docType": "gmp",
+			"packerId": "%s"
+		}
+	}`, asset.Id)
+
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query related gmp documents: %v", err)
+	}
+	defer resultsIterator.Close()
+
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var gmpDoc models.PackerGmp
+		err = json.Unmarshal(queryResponse.Value, &gmpDoc)
+		if err != nil {
+			return nil, err
+		}
+
+		asset.PackerGmp = gmpDoc
+	}
+
+	return &models.PackerByIdResponse{
+		Data: resData,
+		Obj:  asset,
+	}, nil
 }
 
 func (s *SmartContract) ReadPacker(ctx contractapi.TransactionContextInterface, id string) (*models.TransactionPacker, error) {
@@ -117,6 +194,35 @@ func (s *SmartContract) ReadPacker(ctx contractapi.TransactionContextInterface, 
 	err = json.Unmarshal(assetJSON, &asset)
 	if err != nil {
 		return nil, err
+	}
+
+	// Attach related GMP documents
+	queryString := fmt.Sprintf(`{
+		"selector": {
+			"docType": "gmp",
+			"packerId": "%s"
+		}
+	}`, asset.Id)
+
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query related gmp documents: %v", err)
+	}
+	defer resultsIterator.Close()
+
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var gmpDoc models.PackerGmp
+		err = json.Unmarshal(queryResponse.Value, &gmpDoc)
+		if err != nil {
+			return nil, err
+		}
+
+		asset.PackerGmp = gmpDoc
 	}
 
 	return &asset, nil
@@ -150,49 +256,65 @@ func (s *SmartContract) GetPackerById(ctx contractapi.TransactionContextInterfac
 }
 
 func (s *SmartContract) GetAllPacker(ctx contractapi.TransactionContextInterface, args string) (*models.PackerGetAllResponse, error) {
+    var filterPacker = map[string]interface{}{}
+    filterPacker["docType"] = "packer"
 
-	var filterPacker = map[string]interface{}{}
-	filterPacker["docType"] = "packer"
+    entityGetAll := models.FilterGetAllPacker{}
+    interfacePacker, err := utils.Unmarshal(args, entityGetAll)
+    if err != nil {
+        return nil, err
+    }
+    input := interfacePacker.(*models.FilterGetAllPacker)
 
-	entityGetAll := models.FilterGetAllPacker{}
-	interfacePacker, err := utils.Unmarshal(args, entityGetAll)
-	if err != nil {
-		return nil, err
-	}
-	input := interfacePacker.(*models.FilterGetAllPacker)
+    arrPacker, total, err := utils.PackerFetchResultsWithPagination(ctx, input, filterPacker)
+    if err != nil {
+        return nil, err
+    }
 
-	queryStringPacker, err := utils.BuildQueryString(filterPacker)
-	if err != nil {
-		return nil, err
-	}
+    sort.Slice(arrPacker, func(i, j int) bool {
+        return arrPacker[i].UpdatedAt.After(arrPacker[j].UpdatedAt)
+    })
 
-	total, err := utils.CountTotalResults(ctx, queryStringPacker)
-	if err != nil {
-		return nil, err
-	}
+    // Attach related GMP documents
+    for _, packer := range arrPacker {
+        queryString := fmt.Sprintf(`{
+            "selector": {
+                "docType": "gmp",
+                "packerId": "%s"
+            }
+        }`, packer.Id)
 
-	if input.Skip > total {
-		return nil, utils.ReturnError(utils.SKIPOVER)
-	}
+        resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+        if err != nil {
+            return nil, fmt.Errorf("failed to query related gmp documents: %v", err)
+        }
+        defer resultsIterator.Close()
 
-	arrPacker, err := utils.PackerFetchResultsWithPagination(ctx, input)
-	if err != nil {
-		return nil, err
-	}
+        for resultsIterator.HasNext() {
+            queryResponse, err := resultsIterator.Next()
+            if err != nil {
+                return nil, err
+            }
 
-	sort.Slice(arrPacker, func(i, j int) bool {
-		return arrPacker[i].UpdatedAt.Before(arrPacker[j].UpdatedAt)
-	})
+            var gmpDoc models.PackerGmp
+            err = json.Unmarshal(queryResponse.Value, &gmpDoc)
+            if err != nil {
+                return nil, err
+            }
 
-	if len(arrPacker) == 0 {
-		arrPacker = []*models.PackerTransactionResponse{}
-	}
+            packer.PackerGmp = gmpDoc
+        }
+    }
 
-	return &models.PackerGetAllResponse{
-		Data:  "All Packer",
-		Obj:   arrPacker,
-		Total: total,
-	}, nil
+    if len(arrPacker) == 0 {
+        arrPacker = []*models.PackerTransactionResponse{}
+    }
+
+    return &models.PackerGetAllResponse{
+        Data:  "All Packer",
+        Obj:   arrPacker,
+        Total: total,
+    }, nil
 }
 
 func (s *SmartContract) FilterPacker(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionPacker, error) {
@@ -284,6 +406,7 @@ func (s *SmartContract) CreatePackerCsv(
 	}
 
 	for _, input := range inputs {
+		fmt.Printf("create packer csv input %v", input)
 		orgName, err := ctx.GetClientIdentity().GetMSPID()
 		if err != nil {
 			return fmt.Errorf("failed to get submitting client's MSP ID: %v", err)
@@ -305,7 +428,10 @@ func (s *SmartContract) CreatePackerCsv(
 		asset := models.TransactionPacker{
 			Id:        input.Id,
 			CertId:    input.CertId,
-			PackerGmp: input.PackerGmp,
+			UserId:    input.UserId,
+			IsCanExport: input.IsCanExport,
+			PackingHouseName: input.PackingHouseName,
+			PackingHouseRegisterNumber: input.PackingHouseRegisterNumber,
 			Owner:     clientID,
 			OrgName:   orgName,
 			UpdatedAt: input.CreatedAt,
