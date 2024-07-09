@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
@@ -37,6 +38,8 @@ func (s *SmartContract) CreatePacker(
 	clientID, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
+	timestamp := utils.GenerateTimestamp()
+
 	asset := models.TransactionPacker{
 		Id:        input.Id,
 		CertId:    input.CertId,
@@ -47,6 +50,8 @@ func (s *SmartContract) CreatePacker(
 		Owner:     clientID,
 		OrgName:   orgName,
 		DocType:   models.Packer,
+		CreatedAt: timestamp,
+		UpdatedAt: timestamp,
 	}
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
@@ -91,6 +96,10 @@ func (s *SmartContract) UpdatePacker(ctx contractapi.TransactionContextInterface
     if input.IsCanExport {
         asset.IsCanExport = input.IsCanExport
     }
+
+	timestamp := utils.GenerateTimestamp()
+	asset.UpdatedAt = timestamp
+
     assetJSON, errP := json.Marshal(asset)
     if errP != nil {
         return errP
@@ -271,8 +280,14 @@ func (s *SmartContract) GetAllPacker(ctx contractapi.TransactionContextInterface
         return nil, err
     }
 
-    sort.Slice(arrPacker, func(i, j int) bool {
-        return arrPacker[i].UpdatedAt.After(arrPacker[j].UpdatedAt)
+	sort.Slice(arrPacker, func(i, j int) bool {
+        t1, err1 := time.Parse(time.RFC3339, arrPacker[i].CreatedAt)
+        t2, err2 := time.Parse(time.RFC3339, arrPacker[j].CreatedAt)
+        if err1 != nil || err2 != nil {
+            fmt.Println("Error parsing time:", err1, err2)
+            return false
+        }
+        return t1.After(t2)
     })
 
     // Attach related GMP documents
@@ -388,6 +403,8 @@ func (s *SmartContract) CreatePackerCsv(
 			return fmt.Errorf("failed to get submitting client's identity: %v", err)
 		}
 
+		timestamp := utils.GenerateTimestamp()
+
 		asset := models.TransactionPacker{
 			Id:        input.Id,
 			CertId:    input.CertId,
@@ -397,8 +414,8 @@ func (s *SmartContract) CreatePackerCsv(
 			PackingHouseRegisterNumber: input.PackingHouseRegisterNumber,
 			Owner:     clientID,
 			OrgName:   orgName,
-			UpdatedAt: input.CreatedAt,
-			CreatedAt: input.UpdatedAt,
+			UpdatedAt: timestamp,
+			CreatedAt: timestamp,
 			DocType:   models.Packer,
 		}
 

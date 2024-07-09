@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
@@ -36,7 +37,7 @@ func (s *SmartContract) CreateNectecStaff(
 	clientID, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
-	CreatedAt := utils.GetTimeNow()
+	timestamp := utils.GenerateTimestamp()
 
 	asset := models.TransactionNectecStaff{
 		Id:        input.Id,
@@ -44,8 +45,8 @@ func (s *SmartContract) CreateNectecStaff(
 		ProfileImg:    input.ProfileImg,
 		Owner:     clientID,
 		OrgName:   orgName,
-		UpdatedAt: CreatedAt,
-		CreatedAt: CreatedAt,
+		UpdatedAt: timestamp,
+		CreatedAt: timestamp,
 		DocType: models.Nectec,
 	}
 	assetJSON, err := json.Marshal(asset)
@@ -72,10 +73,10 @@ func (s *SmartContract) UpdateNectecStaff(ctx contractapi.TransactionContextInte
 		return fmt.Errorf(utils.UNAUTHORIZE)
 	}
 
-	UpdatedNstda := utils.GetTimeNow()
+	timestamp := utils.GenerateTimestamp()
 	asset.Id = input.Id
 	asset.CertId = input.CertId
-	asset.UpdatedAt = UpdatedNstda
+	asset.UpdatedAt = timestamp
 
 	assetJSON, errN := json.Marshal(asset)
 	utils.HandleError(errN)
@@ -190,8 +191,14 @@ func (s *SmartContract) GetAllNectecStaff(ctx contractapi.TransactionContextInte
 	}
 
 	sort.Slice(arrNstda, func(i, j int) bool {
-		return arrNstda[i].UpdatedAt.After(arrNstda[j].UpdatedAt)
-	})
+        t1, err1 := time.Parse(time.RFC3339, arrNstda[i].CreatedAt)
+        t2, err2 := time.Parse(time.RFC3339, arrNstda[j].CreatedAt)
+        if err1 != nil || err2 != nil {
+            fmt.Println("Error parsing time:", err1, err2)
+            return false
+        }
+        return t1.After(t2)
+    })
 
 	if len(arrNstda) == 0 {
 		arrNstda = []*models.NectecStaffTransactionResponse{}
@@ -235,8 +242,14 @@ func (s *SmartContract) FilterNstdaStaff(ctx contractapi.TransactionContextInter
 	}
 
 	sort.Slice(assetNstda, func(i, j int) bool {
-		return assetNstda[i].UpdatedAt.After(assetNstda[j].UpdatedAt)
-	})
+        t1, err1 := time.Parse(time.RFC3339, assetNstda[i].CreatedAt)
+        t2, err2 := time.Parse(time.RFC3339, assetNstda[j].CreatedAt)
+        if err1 != nil || err2 != nil {
+            fmt.Println("Error parsing time:", err1, err2)
+            return false
+        }
+        return t1.After(t2)
+    })
 
 	return assetNstda, nil
 }

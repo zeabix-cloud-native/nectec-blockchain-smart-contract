@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
@@ -36,15 +37,15 @@ func (s SmartContract) CreateRegulatorProfile(
 	clientID, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
-	CreatedR := utils.GetTimeNow()
+	timestamp := utils.GenerateTimestamp()
 
 	asset := models.TransactionRegulator{
 		Id:        input.Id,
 		CertId:    input.CertId,
 		Owner:     clientID,
 		OrgName:   orgName,
-		UpdatedAt: CreatedR,
-		CreatedAt: CreatedR,
+		UpdatedAt: timestamp,
+		CreatedAt: timestamp,
 	}
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
@@ -70,11 +71,11 @@ func (s SmartContract) UpdateRegulatorProfile(ctx contractapi.TransactionContext
 		return utils.ReturnError(utils.UNAUTHORIZE)
 	}
 
-	UpdatedR := utils.GetTimeNow()
+	timestamp := utils.GenerateTimestamp()
 
 	asset.Id = input.Id
 	asset.CertId = input.CertId
-	asset.UpdatedAt = UpdatedR
+	asset.UpdatedAt = timestamp
 
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
@@ -132,8 +133,14 @@ func (s *SmartContract) GetAllRegulator(ctx contractapi.TransactionContextInterf
 	}
 
 	sort.Slice(arrRegulator, func(i, j int) bool {
-		return arrRegulator[i].UpdatedAt.Before(arrRegulator[j].UpdatedAt)
-	})
+        t1, err1 := time.Parse(time.RFC3339, arrRegulator[i].CreatedAt)
+        t2, err2 := time.Parse(time.RFC3339, arrRegulator[j].CreatedAt)
+        if err1 != nil || err2 != nil {
+            fmt.Println("Error parsing time:", err1, err2)
+            return false
+        }
+        return t1.After(t2)
+    })
 
 	if len(arrRegulator) == 0 {
 		arrRegulator = []*models.RegulatorTransactionResponse{}

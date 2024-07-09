@@ -1,7 +1,5 @@
 package models
 
-import "time"
-
 type TransactionGap struct {
 	Id          string    `json:"id"`
 	CertID      string    `json:"certId"`
@@ -21,8 +19,8 @@ type TransactionGap struct {
 	Owner       string    `json:"owner"`
 	OrgName     string    `json:"orgName"`
 	DocType     DocType   `json:"docType"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   string `json:"updatedAt"`
+	CreatedAt   string `json:"createdAt"`
 }
 
 type FilterGetAllGap struct {
@@ -59,8 +57,8 @@ type GapTransactionResponse struct {
 	UpdatedDate string    `json:"updatedDate"`
 	Source      string    `json:"source"`
 	FarmerID    string    `json:"farmerId"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   string `json:"updatedAt"`
+	CreatedAt   string `json:"createdAt"`
 	TotalSold   float32   `json:"totalSold"`
 	IsCanDelete bool       `json:"isCanDelete"`
 }

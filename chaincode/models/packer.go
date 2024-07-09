@@ -1,7 +1,5 @@
 package models
 
-import "time"
-
 type TransactionPacker struct {
 	Id        string    `json:"id"`
 	CertId    string    `json:"certId"`
@@ -12,8 +10,8 @@ type TransactionPacker struct {
 	PackingHouseRegisterNumber string    `json:"packingHouseRegisterNumber"`
 	IsCanExport  bool  `json:"isCanExport"`
 	PackerGmp PackerGmp `json:"packerGmp"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+	CreatedAt string `json:"createdAt"`
 	DocType	  DocType	`json:"docType"`
 }
 
@@ -37,8 +35,8 @@ type PackerGmp struct {
 	Source                     string    `json:"source"`
 	Owner                      string    `json:"owner"`
 	OrgName                    string    `json:"orgName"`
-	UpdatedAt                  time.Time `json:"updatedAt"`
-	CreatedAt                  time.Time `json:"createdAt"`
+	UpdatedAt                  string `json:"updatedAt"`
+	CreatedAt                  string `json:"createdAt"`
 }
 
 type PackerTransactionResponse struct {
@@ -47,8 +45,8 @@ type PackerTransactionResponse struct {
 	UserId    string    `json:"userId"`
 	IsCanExport   			   bool  `json:"isCanExport"`
 	PackerGmp PackerGmp `json:"packerGmp"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+	CreatedAt string `json:"createdAt"`
 	PackingHouseName           string    `json:"packingHouseName"`
 	PackingHouseRegisterNumber string    `json:"packingHouseRegisterNumber"`
 }

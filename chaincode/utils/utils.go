@@ -102,6 +102,10 @@ func ParseDate(input string) (string, error) {
 	return parsedTime.Format(COUCHDB_DATEFORMAT), nil
 }
 
+func GenerateTimestamp() string {
+    return time.Now().UTC().Format(time.RFC3339)
+}
+
 func SanitizeDate(dateStr string) (string, error) {
 	dateStr = strings.ReplaceAll(dateStr, "–", "-")
 	parsedDate, err := time.Parse("02-01-2006", dateStr)

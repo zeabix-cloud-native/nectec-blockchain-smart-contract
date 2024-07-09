@@ -1,14 +1,12 @@
 package models
 
-import "time"
-
 type TransactionRegulator struct {
 	Id        string    `json:"id"`
 	CertId    string    `json:"certId"`
 	Owner     string    `json:"owner"`
 	OrgName   string    `json:"orgName"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+	CreatedAt string `json:"createdAt"`
 }
 
 type FilterGetAllRegulator struct {
@@ -19,8 +17,8 @@ type FilterGetAllRegulator struct {
 type RegulatorTransactionResponse struct {
 	Id        string    `json:"id"`
 	CertId    string    `json:"certId"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+	CreatedAt string `json:"createdAt"`
 }
 
 type RegulatorGetAllResponse struct {

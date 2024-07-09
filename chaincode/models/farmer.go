@@ -1,15 +1,13 @@
 package models
 
-import "time"
-
 type TransactionFarmer struct {
 	Id        string    `json:"id"`
 	CertId    string    `json:"certId"`
 	ProfileImg    string    `json:"profileImg"`
 	Owner     string    `json:"owner"`
 	OrgName   string    `json:"orgName"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+	CreatedAt string `json:"createdAt"`
 	FarmerGaps []FarmerGap `json:"farmerGaps"`
 	DocType DocType `json:"docType"`
 }
@@ -38,8 +36,8 @@ type FarmerGap struct {
 	Owner       string    `json:"owner"`
 	OrgName     string    `json:"orgName"`
 	IsCanDelete bool       `json:"isCanDelete"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   string `json:"updatedAt"`
+	CreatedAt   string `json:"createdAt"`
 }
 
 type FarmerTransactionResponse struct {
@@ -47,8 +45,8 @@ type FarmerTransactionResponse struct {
 	CertId    string    `json:"certId"`
 	ProfileImg    string    `json:"profileImg"`
 	FarmerGaps []FarmerGap `json:"farmerGaps"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+	CreatedAt string `json:"createdAt"`
 }
 
 type FarmerGetAllResponse struct {

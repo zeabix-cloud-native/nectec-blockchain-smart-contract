@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
@@ -34,7 +35,7 @@ func (s *SmartContract) CreateGAP(
 	clientIDGap, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
-	TimeGap := utils.GetTimeNow()
+	timestamp := utils.GenerateTimestamp()
 
 	asset := models.TransactionGap{
 		Id:          				input.Id,
@@ -53,8 +54,8 @@ func (s *SmartContract) CreateGAP(
 		FarmerID:    input.FarmerID,
 		Owner:       clientIDGap,
 		OrgName:     orgName,
-		UpdatedAt:   TimeGap,
-		CreatedAt:   TimeGap,
+		UpdatedAt:   timestamp,
+		CreatedAt:   timestamp,
 	}
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
@@ -72,7 +73,7 @@ func (s *SmartContract) UpdateGap(ctx contractapi.TransactionContextInterface, a
 	asset, err := s.ReadGap(ctx, input.Id)
 	utils.HandleError(err)
 
-	UpdatedGap := utils.GetTimeNow()
+	timestamp := utils.GenerateTimestamp()
 
 	asset.Id = input.Id
 	asset.DisplayCertID = input.DisplayCertID
@@ -88,7 +89,7 @@ func (s *SmartContract) UpdateGap(ctx contractapi.TransactionContextInterface, a
 	asset.UpdatedDate = input.UpdatedDate
 	asset.Source = input.Source
 	asset.FarmerID = input.FarmerID
-	asset.UpdatedAt = UpdatedGap
+	asset.UpdatedAt = timestamp
 
 	assetJSON, errGap := json.Marshal(asset)
 	utils.HandleError(errGap)
@@ -293,9 +294,14 @@ func (s *SmartContract) GetAllGAP(ctx contractapi.TransactionContextInterface, a
     }
 
 	sort.Slice(assets, func(i, j int) bool {
-		return assets[i].CreatedAt.After(assets[j].CreatedAt)
-	})
-
+        t1, err1 := time.Parse(time.RFC3339, assets[i].CreatedAt)
+        t2, err2 := time.Parse(time.RFC3339, assets[j].CreatedAt)
+        if err1 != nil || err2 != nil {
+            fmt.Println("Error parsing time:", err1, err2)
+            return false
+        }
+        return t1.After(t2)
+    })
 	if len(assets) == 0 {
 		assets = []*models.GapTransactionResponse{}
 	}
@@ -382,8 +388,14 @@ func (s *SmartContract) FilterGap(ctx contractapi.TransactionContextInterface, k
 	}
 
 	sort.Slice(assetGap, func(i, j int) bool {
-		return assetGap[i].UpdatedAt.After(assetGap[j].UpdatedAt)
-	})
+        t1, err1 := time.Parse(time.RFC3339, assetGap[i].UpdatedAt)
+        t2, err2 := time.Parse(time.RFC3339, assetGap[j].UpdatedAt)
+        if err1 != nil || err2 != nil {
+            fmt.Println("Error parsing time:", err1, err2)
+            return false
+        }
+        return t1.After(t2)
+    })
 
 	return assetGap, nil
 }
@@ -411,7 +423,8 @@ func (s *SmartContract) UpdateMultipleGap(
 		if err != nil {
 			return fmt.Errorf("failed to unmarshal existing asset: %v", err)
 		}
-		//UpdatedGap := utils.GetTimeNow()
+
+		timestamp := utils.GenerateTimestamp()
 		
 		existingAsset.Id =          				 input.Id
 		existingAsset.DisplayCertID =       input.DisplayCertID
@@ -424,10 +437,9 @@ func (s *SmartContract) UpdateMultipleGap(
 		existingAsset.ExpireDate =  input.ExpireDate
 		existingAsset.District =    input.District
 		existingAsset.Province =    input.Province
-		//existingAsset.UpdatedAt =		UpdatedGap
 		existingAsset.Source =      input.Source
 		existingAsset.FarmerID =    input.FarmerID
-		existingAsset.UpdatedDate = input.UpdatedDate
+		existingAsset.UpdatedDate = timestamp
 		
 		updatedAssetJSON, err := json.Marshal(existingAsset)
 		if err != nil {
@@ -475,6 +487,8 @@ func (s *SmartContract) CreateGapCsv(
 			return fmt.Errorf("failed to get submitting client's identity: %v", err)
 		}
 
+		timestamp := utils.GenerateTimestamp()
+
 		assetGap := models.TransactionGap {
 			Id:          				 input.Id,
 			DisplayCertID:       input.DisplayCertID,
@@ -494,7 +508,7 @@ func (s *SmartContract) CreateGapCsv(
 			OrgName:     orgNameGap,
 			DocType:     models.Gap,
 			IsCanDelete: true,
-			CreatedAt:   input.CreatedAt,
+			CreatedAt:   timestamp,
 		}
 		
 		assetJSON, err := json.Marshal(assetGap)

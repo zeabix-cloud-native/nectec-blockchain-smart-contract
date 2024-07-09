@@ -1,7 +1,5 @@
 package models
 
-import "time"
-
 type TransactionGmp struct {
 	Id                         string    `json:"id"`
 	PackerId 									 string    `json:"packerId"`
@@ -13,8 +11,8 @@ type TransactionGmp struct {
 	DocType                    DocType   `json:"docType"`
 	Owner                      string    `json:"owner"`
 	OrgName                    string    `json:"orgName"`
-	UpdatedAt                  time.Time `json:"updatedAt"`
-	CreatedAt                  time.Time `json:"createdAt"`
+	UpdatedAt                  string `json:"updatedAt"`
+	CreatedAt                  string `json:"createdAt"`
 	IsCanDelete 			   bool       `json:"isCanDelete"`
 }
 
@@ -37,8 +35,8 @@ type GmpTransactionResponse struct {
 	UpdatedDate                string    `json:"updatedDate"`
 	IsCanDelete 			   bool       `json:"isCanDelete"`
 	Source                     string    `json:"source"`
-	UpdatedAt                  time.Time `json:"updatedAt"`
-	CreatedAt                  time.Time `json:"createdAt"`
+	UpdatedAt                  string `json:"updatedAt"`
+	CreatedAt                  string `json:"createdAt"`
 }
 
 type GmpGetAllResponse struct {

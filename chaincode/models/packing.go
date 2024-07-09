@@ -1,7 +1,5 @@
 package models
 
-import "time"
-
 type TransactionPacking struct {
 	Id             string    `json:"id"`
 	OrderID        string    `json:"orderId"`
@@ -25,8 +23,8 @@ type TransactionPacking struct {
 	District          string    `json:"district"`
 	TotalSold        float32   `json:"totalSold"`
 	OrgName        string    `json:"orgName"`
-	UpdatedAt      time.Time `json:"updatedAt"`
-	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      string `json:"updatedAt"`
+	CreatedAt      string `json:"createdAt"`
 	DocType        DocType   `json:"docType"`
 }
 
@@ -69,8 +67,8 @@ type PackingTransactionResponse struct {
 	ProcessStatus int       `json:"processStatus"`
 	TotalSold        float32   `json:"totalSold"`
 	SellingStep       int    `json:"sellingStep"`
-	UpdatedAt     time.Time `json:"updatedAt"`
-	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     string `json:"updatedAt"`
+	CreatedAt     string `json:"createdAt"`
 	Province          string    `json:"province"`
 	District          string    `json:"district"`
 }

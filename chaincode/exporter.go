@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
@@ -42,7 +43,7 @@ func (s *SmartContract) CreateExporter(
 	clientID, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
-	CreatedTime := utils.GetTimeNow()
+	timestamp := utils.GenerateTimestamp()
 
 	asset := models.TransactionExporter{
 		Id:        input.Id,
@@ -58,8 +59,8 @@ func (s *SmartContract) CreateExporter(
 		ExpiredDate:    input.ExpiredDate,
 		Owner:     clientID,
 		OrgName:   orgName,
-		UpdatedAt: CreatedTime,
-		CreatedAt: CreatedTime,
+		UpdatedAt: timestamp,
+		CreatedAt: timestamp,
 		DocType: models.Exporter,
 	}
 	assetJSON, err := json.Marshal(asset)
@@ -159,7 +160,7 @@ func (s *SmartContract) CreateExporterCsv(
 			Owner:       clientIDG,
 			OrgName:     orgNameG,
 			DocType:     models.Exporter,
-			CreatedAt:   utils.GetTimeNow(),
+			CreatedAt:   utils.GenerateTimestamp(),
 		}
 
 		// Marshal the asset to JSON
@@ -209,11 +210,11 @@ func (s *SmartContract) UpdateExporter(ctx contractapi.TransactionContextInterfa
 		return fmt.Errorf(utils.UNAUTHORIZE)
 	}
 
-	UpdatedTime := utils.GetTimeNow()
+	timestamp := utils.GenerateTimestamp()
 
 	asset.Id = input.Id
 	asset.CertId = input.CertId
-	asset.UpdatedAt = UpdatedTime
+	asset.UpdatedAt = timestamp
 	asset.PlantType = input.PlantType
 	asset.Name = input.Name
 	asset.Address = input.Address
@@ -223,7 +224,7 @@ func (s *SmartContract) UpdateExporter(ctx contractapi.TransactionContextInterfa
 	asset.Email = input.Email
 	asset.IssueDate = input.IssueDate
 	asset.ExpiredDate = input.ExpiredDate
-	asset.UpdatedAt = utils.GetTimeNow()
+	asset.UpdatedAt = timestamp
 
 	assetJSON, errE := json.Marshal(asset)
 	utils.HandleError(errE)
@@ -297,9 +298,16 @@ func (s *SmartContract) GetAllExporter(ctx contractapi.TransactionContextInterfa
 		return nil, err
 	}
 
+
 	sort.Slice(arrExporter, func(i, j int) bool {
-		return arrExporter[i].CreatedAt.After(arrExporter[j].CreatedAt)
-	})
+        t1, err1 := time.Parse(time.RFC3339, arrExporter[i].CreatedAt)
+        t2, err2 := time.Parse(time.RFC3339, arrExporter[j].CreatedAt)
+        if err1 != nil || err2 != nil {
+            fmt.Println("Error parsing time:", err1, err2)
+            return false
+        }
+        return t1.After(t2)
+    })
 
 	if len(arrExporter) == 0 {
 		arrExporter = []*models.ExporterTransactionResponse{}
@@ -344,8 +352,14 @@ func (s *SmartContract) FilterExporter(ctx contractapi.TransactionContextInterfa
 	}
 
 	sort.Slice(assetExporter, func(i, j int) bool {
-		return assetExporter[i].UpdatedAt.After(assetExporter[j].UpdatedAt)
-	})
+        t1, err1 := time.Parse(time.RFC3339, assetExporter[i].CreatedAt)
+        t2, err2 := time.Parse(time.RFC3339, assetExporter[j].CreatedAt)
+        if err1 != nil || err2 != nil {
+            fmt.Println("Error parsing time:", err1, err2)
+            return false
+        }
+        return t1.After(t2)
+    })
 
 	return assetExporter, nil
 }

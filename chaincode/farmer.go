@@ -40,7 +40,7 @@ func (s *SmartContract) CreateFarmerProfile(
 	clientID, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
-	// CreatedAt := utils.GetTimeNow()
+	timestamp := utils.GenerateTimestamp()
 
 	asset := models.TransactionFarmer{
 		Id:        input.Id,
@@ -48,8 +48,8 @@ func (s *SmartContract) CreateFarmerProfile(
 		ProfileImg:    input.ProfileImg,
 		Owner:     clientID,
 		OrgName:   orgName,
-		// UpdatedAt: CreatedAt,
-		// CreatedAt: CreatedAt,
+		UpdatedAt: timestamp,
+		CreatedAt: timestamp,
 		DocType: models.Farmer,
 	}
 	assetJSON, err := json.Marshal(asset)
@@ -68,12 +68,12 @@ func (s *SmartContract) UpdateFarmerProfile(ctx contractapi.TransactionContextIn
 	asset, err := s.ReadFarmerProfile(ctx, input.Id)
 	utils.HandleError(err)
 
-	UpdatedAt := utils.GetTimeNow()
+	timestamp := utils.GenerateTimestamp()
 
 	asset.Id = input.Id
 	asset.ProfileImg = input.ProfileImg
 	asset.CertId = input.CertId
-	asset.UpdatedAt = UpdatedAt
+	asset.UpdatedAt = timestamp
 
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
@@ -201,8 +201,14 @@ func (s *SmartContract) GetAllFarmerProfile(ctx contractapi.TransactionContextIn
 	}
 
 	sort.Slice(arrFarmer, func(i, j int) bool {
-		return arrFarmer[i].UpdatedAt.After(arrFarmer[j].UpdatedAt)
-	})
+        t1, err1 := time.Parse(time.RFC3339, arrFarmer[i].CreatedAt)
+        t2, err2 := time.Parse(time.RFC3339, arrFarmer[j].CreatedAt)
+        if err1 != nil || err2 != nil {
+            fmt.Println("Error parsing time:", err1, err2)
+            return false
+        }
+        return t1.After(t2)
+    })
 
 	for _, farmer := range arrFarmer {
 		queryString := fmt.Sprintf(`{
@@ -297,8 +303,15 @@ func (s *SmartContract) FilterFarmer(ctx contractapi.TransactionContextInterface
 	}
 
 	sort.Slice(assetFarmer, func(i, j int) bool {
-		return assetFarmer[i].UpdatedAt.After(assetFarmer[j].UpdatedAt)
-	})
+        t1, err1 := time.Parse(time.RFC3339, assetFarmer[i].CreatedAt)
+        t2, err2 := time.Parse(time.RFC3339, assetFarmer[j].CreatedAt)
+        if err1 != nil || err2 != nil {
+            fmt.Println("Error parsing time:", err1, err2)
+            return false
+        }
+        return t1.After(t2)
+    })
+
 	return assetFarmer, nil
 }
 
@@ -417,14 +430,16 @@ func (s *SmartContract) CreateFarmerFromCsv(
 			return fmt.Errorf("failed to get submitting client's identity: %v", err)
 		}
 
+		timestamp := utils.GenerateTimestamp()
+
 		asset := models.TransactionFarmer{
 			Id:        input.Id,
 			CertId:    input.CertId,
 			FarmerGaps: input.FarmerGaps,
 			Owner:     clientID,
 			OrgName:   orgName,
-			UpdatedAt: input.CreatedAt,
-			CreatedAt: input.UpdatedAt,
+			UpdatedAt: timestamp,
+			CreatedAt: timestamp,
 			DocType: models.Farmer,
 		}
 

@@ -1,7 +1,5 @@
 package models
 
-import "time"
-
 type TransactionExporter struct {
 	Id        string    `json:"id"`
 	CertId    string    `json:"certId"`
@@ -17,8 +15,8 @@ type TransactionExporter struct {
 	ExpiredDate     string    `json:"expiredDate"`
 	OrgName   string    `json:"orgName"`
 	DocType   DocType   `json:"docType"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+	CreatedAt string `json:"createdAt"`
 }
 
 type ExporterFilterGetAll struct {
@@ -48,8 +46,8 @@ type ExporterTransactionResponse struct {
 	ExpiredDate     string    `json:"expiredDate"`
 	OrgName   string    `json:"orgName"`
 	DocType   DocType   `json:"docType"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+	CreatedAt string `json:"createdAt"`
 }
 
 type ExporterGetAllResponse struct {

@@ -35,8 +35,7 @@ func (s *SmartContract) CreatePacking(
 	clientIDPacking, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
-	TimePacking := utils.GetTimeNow()
-	fmt.Printf("CreatedAt %v", TimePacking)
+	timestamp := utils.GenerateTimestamp()
 
 	asset := models.TransactionPacking{
 		Id:             input.Id,
@@ -60,8 +59,8 @@ func (s *SmartContract) CreatePacking(
 		SellingStep:  	input.SellingStep,
 		Owner:          clientIDPacking,
 		OrgName:        orgName,
-		UpdatedAt:      TimePacking,
-		CreatedAt:      TimePacking,
+		UpdatedAt:      timestamp,
+		CreatedAt:      timestamp,
 		DocType: 		models.Packing,
 	}
 	assetJSON, err := json.Marshal(asset)
@@ -81,7 +80,7 @@ func (s *SmartContract) UpdatePacking(ctx contractapi.TransactionContextInterfac
 	asset, err := s.ReadPacking(ctx, input.Id)
 	utils.HandleError(err)
 
-	UpdatedPacking := utils.GetTimeNow()
+	timestamp := utils.GenerateTimestamp()
 
 	asset.Id = input.Id
 	asset.OrderID = input.OrderID
@@ -101,7 +100,7 @@ func (s *SmartContract) UpdatePacking(ctx contractapi.TransactionContextInterfac
 	asset.Gap = input.Gap
 	asset.ProcessStatus = input.ProcessStatus
 	asset.SellingStep = input.SellingStep
-	asset.UpdatedAt = UpdatedPacking
+	asset.UpdatedAt = timestamp
 
 	assetJSON, errPacking := json.Marshal(asset)
 	utils.HandleError(errPacking)
@@ -194,8 +193,14 @@ func (s *SmartContract) GetAllPacking(ctx contractapi.TransactionContextInterfac
         return nil, err
     }
 
-    sort.Slice(arrPacking, func(i, j int) bool {
-        return arrPacking[i].UpdatedAt.After(arrPacking[j].UpdatedAt)
+	sort.Slice(arrPacking, func(i, j int) bool {
+        t1, err1 := time.Parse(time.RFC3339, arrPacking[i].CreatedAt)
+        t2, err2 := time.Parse(time.RFC3339, arrPacking[j].CreatedAt)
+        if err1 != nil || err2 != nil {
+            fmt.Println("Error parsing time:", err1, err2)
+            return false
+        }
+        return t1.After(t2)
     })
 
     if len(arrPacking) == 0 {
@@ -281,8 +286,14 @@ func (s *SmartContract) FilterPacking(ctx contractapi.TransactionContextInterfac
 	CalculateTotalPackingSold(assetPacking)
 
 	sort.Slice(assetPacking, func(i, j int) bool {
-		return assetPacking[i].UpdatedAt.After(assetPacking[j].UpdatedAt)
-	})
+        t1, err1 := time.Parse(time.RFC3339, assetPacking[i].CreatedAt)
+        t2, err2 := time.Parse(time.RFC3339, assetPacking[j].CreatedAt)
+        if err1 != nil || err2 != nil {
+            fmt.Println("Error parsing time:", err1, err2)
+            return false
+        }
+        return t1.After(t2)
+    })
 
 	return assetPacking, nil
 }

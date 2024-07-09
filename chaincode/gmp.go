@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
@@ -34,6 +35,8 @@ func (s *SmartContract) CreateGMP(
 	clientID, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
+	timestamp := utils.GenerateTimestamp()
+
 	asset := models.TransactionGmp{
 		Id:                         input.Id,
 		PackerId: 									input.PackerId,		
@@ -45,8 +48,8 @@ func (s *SmartContract) CreateGMP(
 		Owner:                      clientID,
 		OrgName:                    orgName,
 		DocType: 					models.Gmp,
-		CreatedAt:  				input.CreatedAt,
-		UpdatedAt:  				input.UpdatedAt,
+		CreatedAt:  				timestamp,
+		UpdatedAt:  				timestamp,
 	}
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
@@ -175,8 +178,14 @@ func (s *SmartContract) GetAllGMP(ctx contractapi.TransactionContextInterface, a
         }
     }
 
-    sort.Slice(assets, func(i, j int) bool {
-        return assets[i].UpdatedAt.After(assets[j].UpdatedAt)
+	sort.Slice(assets, func(i, j int) bool {
+        t1, err1 := time.Parse(time.RFC3339, assets[i].CreatedAt)
+        t2, err2 := time.Parse(time.RFC3339, assets[j].CreatedAt)
+        if err1 != nil || err2 != nil {
+            fmt.Println("Error parsing time:", err1, err2)
+            return false
+        }
+        return t1.After(t2)
     })
 
     if len(assets) == 0 {
@@ -258,9 +267,16 @@ func (s *SmartContract) FilterGmp(ctx contractapi.TransactionContextInterface, k
 		}
 	}
 
+
 	sort.Slice(assetGmp, func(i, j int) bool {
-		return assetGmp[i].UpdatedAt.After(assetGmp[j].UpdatedAt)
-	})
+        t1, err1 := time.Parse(time.RFC3339, assetGmp[i].CreatedAt)
+        t2, err2 := time.Parse(time.RFC3339, assetGmp[j].CreatedAt)
+        if err1 != nil || err2 != nil {
+            fmt.Println("Error parsing time:", err1, err2)
+            return false
+        }
+        return t1.After(t2)
+    })
 
 	return assetGmp, nil
 }
@@ -295,6 +311,8 @@ func (s *SmartContract) CreateGmpCsv(
 			return fmt.Errorf("failed to get submitting client's identity: %v", err)
 		}
 
+		timestamp := utils.GenerateTimestamp()
+
 		assetG := models.TransactionGmp{
 			Id:                         input.Id,
 			PackerId: 									input.PackerId,
@@ -306,9 +324,8 @@ func (s *SmartContract) CreateGmpCsv(
 			Owner:                      clientIDG,
 			DocType: 					models.Gmp,
 			OrgName:                    orgNameG,
-			CreatedAt:  				input.CreatedAt,		
-			UpdatedAt:  				input.UpdatedAt,		
-			// CreatedAt:   utils.GetTimeNow(),
+			CreatedAt:  				timestamp,		
+			UpdatedAt:  				timestamp,		
 			IsCanDelete: true,
 		}
 		assetJSON, err := json.Marshal(assetG)
@@ -351,7 +368,7 @@ func (s *SmartContract) UpdateMultipleGmp(
 		if err != nil {
 			return fmt.Errorf("failed to unmarshal existing asset: %v", err)
 		}
-		UpdatedGmp := utils.GetTimeNow()
+		timestamp := utils.GenerateTimestamp()
 		
 		existingAsset.Id = input.Id
 		existingAsset.PackerId = input.PackerId
@@ -360,7 +377,7 @@ func (s *SmartContract) UpdateMultipleGmp(
 		existingAsset.PackingHouseName = input.PackingHouseName
 		existingAsset.UpdatedDate = input.UpdatedDate
 		existingAsset.Source = input.Source
-		existingAsset.UpdatedAt = UpdatedGmp
+		existingAsset.UpdatedAt = timestamp
 
 		updatedAssetJSON, err := json.Marshal(existingAsset)
 		if err != nil {
