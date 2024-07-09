@@ -4,13 +4,13 @@ import "time"
 
 type TransactionPacker struct {
 	Id        string    `json:"id"`
-	CertId    *string    `json:"certId"`
-	UserId    *string    `json:"userId"`
+	CertId    string    `json:"certId"`
+	UserId    string    `json:"userId"`
 	Owner     string    `json:"owner"`
 	OrgName   string    `json:"orgName"`
-	PackingHouseName           *string    `json:"packingHouseName"`
-	PackingHouseRegisterNumber *string    `json:"packingHouseRegisterNumber"`
-	IsCanExport   *bool  `json:"isCanExport"`
+	PackingHouseName           string    `json:"packingHouseName"`
+	PackingHouseRegisterNumber string    `json:"packingHouseRegisterNumber"`
+	IsCanExport  bool  `json:"isCanExport"`
 	PackerGmp PackerGmp `json:"packerGmp"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	CreatedAt time.Time `json:"createdAt"`

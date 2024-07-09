@@ -76,19 +76,19 @@ func (s *SmartContract) UpdatePacker(ctx contractapi.TransactionContextInterface
     //     return fmt.Errorf(utils.UNAUTHORIZE)
     // }
 
-    if input.CertId != nil {
+    if input.CertId != "" {
         asset.CertId = input.CertId
     }
-    if input.UserId != nil {
+    if input.UserId != "" {
         asset.UserId = input.UserId
     }
-    if input.PackingHouseName != nil {
+    if input.PackingHouseName != "" {
         asset.PackingHouseName = input.PackingHouseName
     }
-    if input.PackingHouseRegisterNumber != nil {
+    if input.PackingHouseRegisterNumber != "" {
         asset.PackingHouseRegisterNumber = input.PackingHouseRegisterNumber
     }
-    if input.IsCanExport != nil {
+    if input.IsCanExport {
         asset.IsCanExport = input.IsCanExport
     }
     assetJSON, errP := json.Marshal(asset)
@@ -315,43 +315,6 @@ func (s *SmartContract) GetAllPacker(ctx contractapi.TransactionContextInterface
         Obj:   arrPacker,
         Total: total,
     }, nil
-}
-
-func (s *SmartContract) FilterPacker(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionPacker, error) {
-	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
-	if err != nil {
-		return nil, err
-	}
-	defer resultsIterator.Close()
-
-	var assetPacker []*models.TransactionPacker
-	for resultsIterator.HasNext() {
-		queryResponse, err := resultsIterator.Next()
-		if err != nil {
-			return nil, err
-		}
-
-		var asset models.TransactionPacker
-		err = json.Unmarshal(queryResponse.Value, &asset)
-		if err != nil {
-			return nil, err
-		}
-
-		var m map[string]interface{}
-		if err := json.Unmarshal(queryResponse.Value, &m); err != nil {
-			return nil, err
-		}
-
-		if val, ok := m[key]; ok && fmt.Sprintf("%v", val) == value {
-			assetPacker = append(assetPacker, &asset)
-		}
-	}
-
-	sort.Slice(assetPacker, func(i, j int) bool {
-		return assetPacker[i].UpdatedAt.After(assetPacker[j].UpdatedAt)
-	})
-
-	return assetPacker, nil
 }
 
 func (s *SmartContract) GetLastIdPacker(ctx contractapi.TransactionContextInterface) string {
