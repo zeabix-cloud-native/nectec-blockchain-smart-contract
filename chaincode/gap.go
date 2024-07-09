@@ -494,7 +494,7 @@ func (s *SmartContract) CreateGapCsv(
 			OrgName:     orgNameGap,
 			DocType:     models.Gap,
 			IsCanDelete: true,
-			// CreatedAt:   utils.GetTimeNow(),
+			CreatedAt:   input.CreatedAt,
 		}
 		
 		assetJSON, err := json.Marshal(assetGap)
