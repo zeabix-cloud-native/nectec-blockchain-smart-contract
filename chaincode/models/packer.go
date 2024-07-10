@@ -9,7 +9,7 @@ type TransactionPacker struct {
 	PackingHouseName           string    `json:"packingHouseName"`
 	PackingHouseRegisterNumber string    `json:"packingHouseRegisterNumber"`
 	IsCanExport  bool  `json:"isCanExport"`
-	PackerGmp PackerGmp `json:"packerGmp"`
+	PackerGmp *PackerGmp `json:"packerGmp"`
 	UpdatedAt string `json:"updatedAt"`
 	CreatedAt string `json:"createdAt"`
 	DocType	  DocType	`json:"docType"`

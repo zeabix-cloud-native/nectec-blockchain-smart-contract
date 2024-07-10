@@ -73,8 +73,6 @@ func (s *SmartContract) UpdateGmp(ctx contractapi.TransactionContextInterface, a
 	// 	return utils.ReturnError(utils.UNAUTHORIZE)
 	// }
 
-
-	asset.Id = input.Id
 	asset.PackerId = input.PackerId
 	asset.PackingHouseRegisterNumber = input.PackingHouseRegisterNumber
 	asset.Address = input.Address

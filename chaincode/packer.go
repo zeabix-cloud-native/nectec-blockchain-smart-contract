@@ -61,7 +61,7 @@ func (s *SmartContract) CreatePacker(
 
 func (s *SmartContract) UpdatePacker(ctx contractapi.TransactionContextInterface, args string) error {
     entityPacker := models.TransactionPacker{}
-    inputInterface, err := utils.Unmarshal(args, &entityPacker)
+    inputInterface, err := utils.Unmarshal(args, entityPacker)
     if err != nil {
         return err
     }
@@ -71,7 +71,7 @@ func (s *SmartContract) UpdatePacker(ctx contractapi.TransactionContextInterface
     if err != nil {
         return err
     }
-
+	
     // clientID, err := utils.GetIdentity(ctx)
     // if err != nil {
     //     return err
@@ -81,21 +81,13 @@ func (s *SmartContract) UpdatePacker(ctx contractapi.TransactionContextInterface
     //     return fmt.Errorf(utils.UNAUTHORIZE)
     // }
 
-    if input.CertId != "" {
-        asset.CertId = input.CertId
-    }
-    if input.UserId != "" {
-        asset.UserId = input.UserId
-    }
-    if input.PackingHouseName != "" {
-        asset.PackingHouseName = input.PackingHouseName
-    }
-    if input.PackingHouseRegisterNumber != "" {
-        asset.PackingHouseRegisterNumber = input.PackingHouseRegisterNumber
-    }
-    if input.IsCanExport {
-        asset.IsCanExport = input.IsCanExport
-    }
+	asset.CertId = input.CertId
+	asset.UserId = input.UserId
+	asset.PackerGmp = nil
+	asset.PackingHouseName = input.PackingHouseName
+	asset.PackingHouseRegisterNumber = input.PackingHouseRegisterNumber
+	asset.IsCanExport = input.IsCanExport
+	
 
 	timestamp := utils.GenerateTimestamp()
 	asset.UpdatedAt = timestamp
@@ -225,7 +217,7 @@ func (s *SmartContract) ReadPacker(ctx contractapi.TransactionContextInterface, 
 			return nil, err
 		}
 
-		var gmpDoc models.PackerGmp
+		var gmpDoc *models.PackerGmp
 		err = json.Unmarshal(queryResponse.Value, &gmpDoc)
 		if err != nil {
 			return nil, err
