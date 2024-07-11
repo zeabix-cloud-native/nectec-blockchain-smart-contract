@@ -57,7 +57,7 @@ func (s *SmartContract) processSinglePackaging(ctx contractapi.TransactionContex
         return fmt.Errorf("failed to get submitting client's identity: %v", err)
     }
 
-    timestamp := utils.GenerateTimestamp()
+    // timestamp := utils.GenerateTimestamp()
 
     assetPackaging := models.TransactionPackaging{
         Id:          input.Id,
@@ -74,8 +74,8 @@ func (s *SmartContract) processSinglePackaging(ctx contractapi.TransactionContex
         DocType:     models.Packaging,
         Owner:       clientIDPackaging,
         OrgName:     orgNamePackaging,
-        CreatedAt:   timestamp,
-        UpdatedAt:   timestamp,
+        CreatedAt:   input.CreatedAt,
+        UpdatedAt:   input.UpdatedAt,
     }
 
     assetJSON, err := json.Marshal(assetPackaging)

@@ -38,7 +38,7 @@ func (s *SmartContract) CreatePacker(
 	clientID, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
-	timestamp := utils.GenerateTimestamp()
+	// timestamp := utils.GenerateTimestamp()
 
 	asset := models.TransactionPacker{
 		Id:        input.Id,
@@ -50,8 +50,8 @@ func (s *SmartContract) CreatePacker(
 		Owner:     clientID,
 		OrgName:   orgName,
 		DocType:   models.Packer,
-		CreatedAt: timestamp,
-		UpdatedAt: timestamp,
+		CreatedAt: input.CreatedAt,
+		UpdatedAt: input.UpdatedAt,
 	}
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
@@ -395,7 +395,7 @@ func (s *SmartContract) CreatePackerCsv(
 			return fmt.Errorf("failed to get submitting client's identity: %v", err)
 		}
 
-		timestamp := utils.GenerateTimestamp()
+		// timestamp := utils.GenerateTimestamp()
 
 		asset := models.TransactionPacker{
 			Id:        input.Id,
@@ -406,8 +406,8 @@ func (s *SmartContract) CreatePackerCsv(
 			PackingHouseRegisterNumber: input.PackingHouseRegisterNumber,
 			Owner:     clientID,
 			OrgName:   orgName,
-			UpdatedAt: timestamp,
-			CreatedAt: timestamp,
+			UpdatedAt: input.UpdatedAt,
+			CreatedAt: input.CreatedAt,
 			DocType:   models.Packer,
 		}
 

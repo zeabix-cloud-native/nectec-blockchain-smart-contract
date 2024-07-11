@@ -44,30 +44,25 @@ func GmpFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, 
     }
 
     // Fetch total count of the results
-    resultsIterator, err := ctx.GetStub().GetQueryResult(string(getStringGmp))
+    total, err := getTotalGmpCount(ctx, string(getStringGmp))
     if err != nil {
         return nil, 0, err
     }
-    defer resultsIterator.Close()
-
-    total := 0
-    for resultsIterator.HasNext() {
-        _, err := resultsIterator.Next()
-        if err != nil {
-            return nil, 0, err
-        }
-        total++
-    }
 
     // Apply pagination
-	if input.Skip > 0 {
-		selector["skip"] = input.Skip
-	}
-	if input.Limit > 0 {
-		selector["limit"] = input.Limit
-	}
+    if input.Skip > 0 {
+        selector["skip"] = input.Skip
+    }
+    if input.Limit > 0 {
+        selector["limit"] = input.Limit
+    }
 
-    queryGmp, _, err := ctx.GetStub().GetQueryResultWithPagination(string(getStringGmp), int32(input.Limit), "")
+    getStringGmpWithPagination, err := json.Marshal(selector)
+    if err != nil {
+        return nil, 0, err
+    }
+
+    queryGmp, _, err := ctx.GetStub().GetQueryResultWithPagination(string(getStringGmpWithPagination), int32(input.Limit), "")
     if err != nil {
         return nil, 0, err
     }
@@ -90,4 +85,22 @@ func GmpFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, 
     }
 
     return dataGmp, total, nil
+}
+
+func getTotalGmpCount(ctx contractapi.TransactionContextInterface, query string) (int, error) {
+    resultsIterator, err := ctx.GetStub().GetQueryResult(query)
+    if err != nil {
+        return 0, err
+    }
+    defer resultsIterator.Close()
+
+    total := 0
+    for resultsIterator.HasNext() {
+        _, err := resultsIterator.Next()
+        if err != nil {
+            return 0, err
+        }
+        total++
+    }
+    return total, nil
 }

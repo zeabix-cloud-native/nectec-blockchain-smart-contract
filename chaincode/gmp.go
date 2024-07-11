@@ -35,7 +35,7 @@ func (s *SmartContract) CreateGMP(
 	clientID, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
-	timestamp := utils.GenerateTimestamp()
+	// timestamp := utils.GenerateTimestamp()
 
 	asset := models.TransactionGmp{
 		Id:                         input.Id,
@@ -48,8 +48,8 @@ func (s *SmartContract) CreateGMP(
 		Owner:                      clientID,
 		OrgName:                    orgName,
 		DocType: 					models.Gmp,
-		CreatedAt:  				timestamp,
-		UpdatedAt:  				timestamp,
+		CreatedAt:  				input.CreatedAt,
+		UpdatedAt:  				input.UpdatedAt,
 	}
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
@@ -176,15 +176,15 @@ func (s *SmartContract) GetAllGMP(ctx contractapi.TransactionContextInterface, a
         }
     }
 
-	sort.Slice(assets, func(i, j int) bool {
-        t1, err1 := time.Parse(time.RFC3339, assets[i].CreatedAt)
-        t2, err2 := time.Parse(time.RFC3339, assets[j].CreatedAt)
-        if err1 != nil || err2 != nil {
-            fmt.Println("Error parsing time:", err1, err2)
-            return false
-        }
-        return t1.After(t2)
-    })
+	// sort.Slice(assets, func(i, j int) bool {
+    //     t1, err1 := time.Parse(time.RFC3339, assets[i].CreatedAt)
+    //     t2, err2 := time.Parse(time.RFC3339, assets[j].CreatedAt)
+    //     if err1 != nil || err2 != nil {
+    //         fmt.Println("Error parsing time:", err1, err2)
+    //         return false
+    //     }
+    //     return t1.After(t2)
+    // })
 
     if len(assets) == 0 {
         assets = []*models.GmpTransactionResponse{}
@@ -309,7 +309,7 @@ func (s *SmartContract) CreateGmpCsv(
 			return fmt.Errorf("failed to get submitting client's identity: %v", err)
 		}
 
-		timestamp := utils.GenerateTimestamp()
+		// timestamp := utils.GenerateTimestamp()
 
 		assetG := models.TransactionGmp{
 			Id:                         input.Id,
@@ -322,8 +322,8 @@ func (s *SmartContract) CreateGmpCsv(
 			Owner:                      clientIDG,
 			DocType: 					models.Gmp,
 			OrgName:                    orgNameG,
-			CreatedAt:  				timestamp,		
-			UpdatedAt:  				timestamp,		
+			CreatedAt:  				input.CreatedAt,		
+			UpdatedAt:  				input.UpdatedAt,		
 			IsCanDelete: true,
 		}
 		assetJSON, err := json.Marshal(assetG)
@@ -366,7 +366,7 @@ func (s *SmartContract) UpdateMultipleGmp(
 		if err != nil {
 			return fmt.Errorf("failed to unmarshal existing asset: %v", err)
 		}
-		timestamp := utils.GenerateTimestamp()
+		// timestamp := utils.GenerateTimestamp()
 		
 		existingAsset.Id = input.Id
 		existingAsset.PackerId = input.PackerId
@@ -375,7 +375,7 @@ func (s *SmartContract) UpdateMultipleGmp(
 		existingAsset.PackingHouseName = input.PackingHouseName
 		existingAsset.UpdatedDate = input.UpdatedDate
 		existingAsset.Source = input.Source
-		existingAsset.UpdatedAt = timestamp
+		existingAsset.UpdatedAt = input.UpdatedAt
 
 		updatedAssetJSON, err := json.Marshal(existingAsset)
 		if err != nil {

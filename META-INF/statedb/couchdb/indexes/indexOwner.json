@@ -1,8 +1,14 @@
 {
   "index": {
-    "fields": [{ "_id": "desc" }]
+    "fields": [
+      { "_id": "desc" },
+      "docType",
+      "packingHouseRegisterNumber",
+      "packingHouseName",
+      "address"
+    ]
   },
-  "ddoc": "index-id",
-  "name": "index-id",
+  "ddoc": "index-combined",
+  "name": "index-combined",
   "type": "json"
 }
