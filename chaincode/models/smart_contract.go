@@ -16,4 +16,5 @@ const (
 	Exporter DocType = "exporter"
 	Packer DocType = "packer"
 	Packing DocType = "packing"
+	Packaging DocType = "packaging"
 )
