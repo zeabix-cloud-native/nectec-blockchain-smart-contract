@@ -35,8 +35,6 @@ func (s *SmartContract) CreateGAP(
 	clientIDGap, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
-	timestamp := utils.GenerateTimestamp()
-
 	asset := models.TransactionGap{
 		Id:          				input.Id,
 		CertID:      				input.CertID,
@@ -49,13 +47,12 @@ func (s *SmartContract) CreateGAP(
 		ExpireDate:  input.ExpireDate,
 		District:    input.District,
 		Province:    input.Province,
-		UpdatedDate: input.UpdatedDate,
+		UpdatedAt:   input.UpdatedAt,
 		Source:      input.Source,
 		FarmerID:    input.FarmerID,
 		Owner:       clientIDGap,
 		OrgName:     orgName,
-		UpdatedAt:   timestamp,
-		CreatedAt:   timestamp,
+		CreatedAt:   input.CreatedAt,
 	}
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
@@ -73,8 +70,6 @@ func (s *SmartContract) UpdateGap(ctx contractapi.TransactionContextInterface, a
 	asset, err := s.ReadGap(ctx, input.Id)
 	utils.HandleError(err)
 
-	timestamp := utils.GenerateTimestamp()
-
 	asset.Id = input.Id
 	asset.DisplayCertID = input.DisplayCertID
 	asset.CertID = input.CertID
@@ -86,10 +81,10 @@ func (s *SmartContract) UpdateGap(ctx contractapi.TransactionContextInterface, a
 	asset.ExpireDate = input.ExpireDate
 	asset.District = input.District
 	asset.Province = input.Province
-	asset.UpdatedDate = input.UpdatedDate
+	asset.UpdatedAt = input.UpdatedAt
 	asset.Source = input.Source
 	asset.FarmerID = input.FarmerID
-	asset.UpdatedAt = timestamp
+	asset.UpdatedAt = input.UpdatedAt
 
 	assetJSON, errGap := json.Marshal(asset)
 	utils.HandleError(errGap)
@@ -424,8 +419,6 @@ func (s *SmartContract) UpdateMultipleGap(
 			return fmt.Errorf("failed to unmarshal existing asset: %v", err)
 		}
 
-		timestamp := utils.GenerateTimestamp()
-		
 		existingAsset.Id =          				 input.Id
 		existingAsset.DisplayCertID =       input.DisplayCertID
 		existingAsset.CertID =      input.CertID
@@ -439,7 +432,7 @@ func (s *SmartContract) UpdateMultipleGap(
 		existingAsset.Province =    input.Province
 		existingAsset.Source =      input.Source
 		existingAsset.FarmerID =    input.FarmerID
-		existingAsset.UpdatedDate = timestamp
+		existingAsset.UpdatedAt = 	input.UpdatedAt
 		
 		updatedAssetJSON, err := json.Marshal(existingAsset)
 		if err != nil {
@@ -487,8 +480,6 @@ func (s *SmartContract) CreateGapCsv(
 			return fmt.Errorf("failed to get submitting client's identity: %v", err)
 		}
 
-		timestamp := utils.GenerateTimestamp()
-
 		assetGap := models.TransactionGap {
 			Id:          				 input.Id,
 			DisplayCertID:       input.DisplayCertID,
@@ -501,14 +492,14 @@ func (s *SmartContract) CreateGapCsv(
 			ExpireDate:  input.ExpireDate,
 			District:    input.District,
 			Province:    input.Province,
-			UpdatedDate: input.UpdatedDate,
+			UpdatedAt:   input.UpdatedAt,
 			Source:      input.Source,
 			FarmerID:    input.FarmerID,
 			Owner:       clientIDGap,
 			OrgName:     orgNameGap,
 			DocType:     models.Gap,
 			IsCanDelete: true,
-			CreatedAt:   timestamp,
+			CreatedAt:   input.CreatedAt,
 		}
 		
 		assetJSON, err := json.Marshal(assetGap)

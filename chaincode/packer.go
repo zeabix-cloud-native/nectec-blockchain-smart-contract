@@ -331,6 +331,7 @@ func (s *SmartContract) GetLastIdPacker(ctx contractapi.TransactionContextInterf
 			"docType": "packer"
 		},
 		"sort": [{"_id": "desc"}],
+		"use_index": ["_design/index-combined","index-combined"],
 		"limit": 1
 	}`
 

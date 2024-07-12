@@ -162,7 +162,14 @@ func (s *SmartContract) GetAllGMP(ctx contractapi.TransactionContextInterface, a
             "selector": {
                 "docType": "packing",
                 "gmp": "%s"
-            }
+            },
+			"sort": [
+				{"createdAt": "desc"}
+			],
+			"use_index": [
+            	"_design/index-CreatedAt",
+            	"index-CreatedAt"
+        	]
         }`, asset.PackingHouseRegisterNumber)
 
         salesResultsIterator, err := ctx.GetStub().GetQueryResult(salesQueryString)
@@ -175,16 +182,6 @@ func (s *SmartContract) GetAllGMP(ctx contractapi.TransactionContextInterface, a
             asset.IsCanDelete = false
         }
     }
-
-	// sort.Slice(assets, func(i, j int) bool {
-    //     t1, err1 := time.Parse(time.RFC3339, assets[i].CreatedAt)
-    //     t2, err2 := time.Parse(time.RFC3339, assets[j].CreatedAt)
-    //     if err1 != nil || err2 != nil {
-    //         fmt.Println("Error parsing time:", err1, err2)
-    //         return false
-    //     }
-    //     return t1.After(t2)
-    // })
 
     if len(assets) == 0 {
         assets = []*models.GmpTransactionResponse{}

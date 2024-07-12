@@ -12,7 +12,6 @@ type TransactionGap struct {
 	ExpireDate  string    `json:"expireDate"`
 	District    string    `json:"district"`
 	Province    string    `json:"province"`
-	UpdatedDate string    `json:"updatedDate"`
 	Source      string    `json:"source"`
 	FarmerID    string    `json:"farmerId"`
 	IsCanDelete bool       `json:"isCanDelete"`

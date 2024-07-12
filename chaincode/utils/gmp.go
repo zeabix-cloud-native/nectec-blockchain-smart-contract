@@ -18,6 +18,8 @@ func GmpSetFilter(input *models.FilterGetAllGmp) map[string]interface{} {
 func GmpFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, input *models.FilterGetAllGmp, filter map[string]interface{}) ([]*models.GmpTransactionResponse, int, error) {
     search := input.Search
 
+    filter["docType"] = "gmp"
+
     selector := map[string]interface{}{
         "selector": filter,
     }
@@ -38,7 +40,16 @@ func GmpFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, 
         }
     }
 
-    getStringGmp, err := json.Marshal(selector)
+    getStringGmp, err := json.Marshal(map[string]interface{}{
+		"selector": selector,
+		"sort": []map[string]string{
+			{"createdAt": "desc"},
+		},
+        "use_index": []string{
+            "_design/index-CreatedAt",
+            "index-CreatedAt",
+        },
+	})
     if err != nil {
         return nil, 0, err
     }

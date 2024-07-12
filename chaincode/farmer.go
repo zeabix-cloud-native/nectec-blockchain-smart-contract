@@ -40,16 +40,14 @@ func (s *SmartContract) CreateFarmerProfile(
 	clientID, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
-	timestamp := utils.GenerateTimestamp()
-
 	asset := models.TransactionFarmer{
 		Id:        input.Id,
 		CertId:    input.CertId,
 		ProfileImg:    input.ProfileImg,
 		Owner:     clientID,
 		OrgName:   orgName,
-		UpdatedAt: timestamp,
-		CreatedAt: timestamp,
+		UpdatedAt: input.CreatedAt,
+		CreatedAt: input.UpdatedAt,
 		DocType: models.Farmer,
 	}
 	assetJSON, err := json.Marshal(asset)
@@ -68,12 +66,10 @@ func (s *SmartContract) UpdateFarmerProfile(ctx contractapi.TransactionContextIn
 	asset, err := s.ReadFarmerProfile(ctx, input.Id)
 	utils.HandleError(err)
 
-	timestamp := utils.GenerateTimestamp()
-
 	asset.Id = input.Id
 	asset.ProfileImg = input.ProfileImg
 	asset.CertId = input.CertId
-	asset.UpdatedAt = timestamp
+	asset.UpdatedAt = input.UpdatedAt
 
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
@@ -367,7 +363,7 @@ func (s *SmartContract) GetLastIdFarmer(ctx contractapi.TransactionContextInterf
 			},
 			"sort": [{"_id": "desc"}],
 			"limit": 1,
-			"use_index": "index-id"
+			"use_index": ["_design/index-combined","index-combined"]
 	}`
 
 	resultsIterator, err := ctx.GetStub().GetQueryResult(query)

@@ -90,3 +90,186 @@ func (s *SmartContract) processSinglePackaging(ctx contractapi.TransactionContex
 
     return nil
 }
+
+func (s *SmartContract) ReadPackaging(ctx contractapi.TransactionContextInterface, id string) (*models.ReadPackaging, error) {
+	assetJSON, err := ctx.GetStub().GetState(id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from world state: %v", err)
+	}
+	if assetJSON == nil {
+		return nil, fmt.Errorf("the asset %s does not exist", id)
+	}
+
+	var asset models.ReadPackaging
+	err = json.Unmarshal(assetJSON, &asset)
+	if err != nil {
+		return nil, err
+	}
+
+	gmp, err := s.GetPackagingGmp(ctx, asset.Gmp) 
+	if err != nil {
+		return nil, fmt.Errorf("failed to get gmp for asset %s: %v", id, err)
+	}
+	asset.GmpDetail = gmp
+
+	return &asset, nil
+}
+
+func (s *SmartContract) GetPackagingGmp(ctx contractapi.TransactionContextInterface, id string) (models.TransactionGmp, error) {
+    selector := map[string]interface{}{
+        "docType": "gmp",
+        "packingHouseRegisterNumber": id,
+    }
+
+    queryString, err := json.Marshal(map[string]interface{}{
+        "selector": selector,
+        "use_index": []string{
+            "_design/index-docType",
+            "index-docType",
+        },
+    })
+    if err != nil {
+        return models.TransactionGmp{}, fmt.Errorf("failed to marshal query string: %v", err)
+    }
+
+    fmt.Printf("GMP query: %s\n", queryString)
+
+    resultsIterator, err := ctx.GetStub().GetQueryResult(string(queryString))
+    if err != nil {
+        return models.TransactionGmp{}, fmt.Errorf("failed to get GMP query result: %v", err)
+    }
+    defer resultsIterator.Close()
+
+    if !resultsIterator.HasNext() {
+        return models.TransactionGmp{}, fmt.Errorf("the GMP for asset %s does not exist", id)
+    }
+
+    queryResponse, err := resultsIterator.Next()
+    if err != nil {
+        return models.TransactionGmp{}, fmt.Errorf("failed to get next GMP query result: %v", err)
+    }
+
+    var gmpDocument models.TransactionGmp
+    err = json.Unmarshal(queryResponse.Value, &gmpDocument)
+    if err != nil {
+        return models.TransactionGmp{}, fmt.Errorf("failed to unmarshal GMP query result: %v", err)
+    }
+
+    return gmpDocument, nil
+}
+
+func (s *SmartContract) QueryPackagingWithPagination(ctx contractapi.TransactionContextInterface, filterParams string) (*models.TransactionPackagingResponse, error) {
+	var filters models.PackagingFilterParams
+	err := json.Unmarshal([]byte(filterParams), &filters)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal filter parameters: %v", err)
+	}
+
+	selector := map[string]interface{}{
+		"docType": "packaging",
+	}
+
+	if filters.ContainerId != "" {
+		selector["containerId"] = filters.ContainerId
+	}
+	if filters.BoxId != "" {
+		selector["boxId"] = filters.BoxId
+	}
+	if filters.Gtin13 != "" {
+		selector["gtin13"] = filters.Gtin13
+	}
+	if filters.Gap != "" {
+		selector["gap"] = filters.Gap
+	}
+	if filters.StartDate != "" && filters.EndDate != "" {
+		selector["createdAt"] = map[string]interface{}{
+			"$gte": filters.StartDate,
+			"$lte": filters.EndDate,
+		}
+	}
+
+	// Create query string for counting total records
+	countQueryString, err := json.Marshal(map[string]interface{}{
+		"selector": selector,
+		"use_index": []string{
+            "_design/index-CreatedAt",
+            "index-CreatedAt",
+        },
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal count query string: %v", err)
+	}
+
+	// Execute the count query
+	countResultsIterator, err := ctx.GetStub().GetQueryResult(string(countQueryString))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get count query result: %v", err)
+	}
+	defer countResultsIterator.Close()
+
+	// Count the total number of records
+	var totalCount int
+	for countResultsIterator.HasNext() {
+		_, err := countResultsIterator.Next()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get next count query result: %v", err)
+		}
+		totalCount++
+	}
+
+	// If no records are found, return an empty response
+	if totalCount == 0 {
+		return &models.TransactionPackagingResponse{
+			Data:  []*models.TransactionPackaging{},
+			Total: totalCount,
+		}, nil
+	}
+
+	// Create query string for paginated results
+	queryString, err := json.Marshal(map[string]interface{}{
+		"selector": selector,
+		"sort": []map[string]string{
+			{"createdAt": "desc"},
+		},
+        "use_index": []string{
+            "_design/index-CreatedAt",
+            "index-CreatedAt",
+        },
+	})
+
+	fmt.Printf("Packaging query %v", queryString)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal query string: %v", err)
+	}
+
+	// Execute the paginated query
+	resultsIterator, _, err := ctx.GetStub().GetQueryResultWithPagination(string(queryString), int32(filters.Limit), "")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get query result with pagination: %v", err)
+	}
+	defer resultsIterator.Close()
+
+	var assets []*models.TransactionPackaging
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get next query result: %v", err)
+		}
+
+		var asset models.TransactionPackaging
+		err = json.Unmarshal(queryResponse.Value, &asset)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal query result: %v", err)
+		}
+		assets = append(assets, &asset)
+	}
+
+	return &models.TransactionPackagingResponse{
+		Data:  assets,
+		Total: totalCount,
+	}, nil
+}
+
+
