@@ -87,10 +87,7 @@ func (s *SmartContract) UpdatePacker(ctx contractapi.TransactionContextInterface
 	asset.PackingHouseName = input.PackingHouseName
 	asset.PackingHouseRegisterNumber = input.PackingHouseRegisterNumber
 	asset.IsCanExport = input.IsCanExport
-	
-
-	timestamp := utils.GenerateTimestamp()
-	asset.UpdatedAt = timestamp
+	asset.UpdatedAt = input.UpdatedAt
 
     assetJSON, errP := json.Marshal(asset)
     if errP != nil {

@@ -159,6 +159,7 @@ func (s *SmartContract) GetAllGMP(ctx contractapi.TransactionContextInterface, a
         asset.IsCanDelete = true
 
         salesQueryString := fmt.Sprintf(`{
+			"limit": 1000,
             "selector": {
                 "docType": "packing",
                 "gmp": "%s"
@@ -166,10 +167,7 @@ func (s *SmartContract) GetAllGMP(ctx contractapi.TransactionContextInterface, a
 			"sort": [
 				{"createdAt": "desc"}
 			],
-			"use_index": [
-            	"_design/index-CreatedAt",
-            	"index-CreatedAt"
-        	]
+  			"use_index": ["_design/index-packing-gmp-createdAt", "index-packing-gmp-createdAt"]
         }`, asset.PackingHouseRegisterNumber)
 
         salesResultsIterator, err := ctx.GetStub().GetQueryResult(salesQueryString)

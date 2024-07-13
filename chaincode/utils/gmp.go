@@ -16,17 +16,19 @@ func GmpSetFilter(input *models.FilterGetAllGmp) map[string]interface{} {
 }
 
 func GmpFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, input *models.FilterGetAllGmp, filter map[string]interface{}) ([]*models.GmpTransactionResponse, int, error) {
-    search := input.Search
-
     filter["docType"] = "gmp"
 
-    selector := map[string]interface{}{
-        "selector": filter,
+    if (input.AvailableGmp != nil) {
+        filter["packerId"] = map[string]interface{}{
+            "$eq": "",
+        }
     }
 
-    if search != nil && *search != "" {
-        searchTerm := *search
-        selector["selector"] = map[string]interface{}{
+    selector := filter
+
+    if input.Search != nil && *input.Search != "" {
+        searchTerm := *input.Search
+        selector = map[string]interface{}{
             "$and": []map[string]interface{}{
                 filter,
                 {
@@ -40,40 +42,43 @@ func GmpFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, 
         }
     }
 
-    getStringGmp, err := json.Marshal(map[string]interface{}{
-		"selector": selector,
-		"sort": []map[string]string{
-			{"createdAt": "desc"},
-		},
+    query := map[string]interface{}{
+        "selector": selector,
+        "sort": []map[string]string{
+            {"createdAt": "desc"},
+        },
         "use_index": []string{
             "_design/index-CreatedAt",
             "index-CreatedAt",
         },
-	})
+    }
+
+    // Fetch total count of the results
+    queryForCount := query
+    queryForCountBytes, err := json.Marshal(queryForCount)
     if err != nil {
         return nil, 0, err
     }
 
-    // Fetch total count of the results
-    total, err := getTotalGmpCount(ctx, string(getStringGmp))
+    total, err := getTotalGmpCount(ctx, string(queryForCountBytes))
     if err != nil {
         return nil, 0, err
     }
 
     // Apply pagination
     if input.Skip > 0 {
-        selector["skip"] = input.Skip
+        query["skip"] = input.Skip
     }
     if input.Limit > 0 {
-        selector["limit"] = input.Limit
+        query["limit"] = input.Limit
     }
 
-    getStringGmpWithPagination, err := json.Marshal(selector)
+    queryBytes, err := json.Marshal(query)
     if err != nil {
         return nil, 0, err
     }
 
-    queryGmp, _, err := ctx.GetStub().GetQueryResultWithPagination(string(getStringGmpWithPagination), int32(input.Limit), "")
+    queryGmp, _, err := ctx.GetStub().GetQueryResultWithPagination(string(queryBytes), int32(input.Limit), "")
     if err != nil {
         return nil, 0, err
     }
@@ -97,6 +102,7 @@ func GmpFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, 
 
     return dataGmp, total, nil
 }
+
 
 func getTotalGmpCount(ctx contractapi.TransactionContextInterface, query string) (int, error) {
     resultsIterator, err := ctx.GetStub().GetQueryResult(query)
