@@ -1,0 +1,8 @@
+{
+  "index": {
+    "fields": ["docType", "invoice.productAndPackaging.containerNumber"]
+  },
+  "ddoc": "productPackagingContainerNumber-index",
+  "name": "productPackagingContainerNumber-index",
+  "type": "json"
+}

@@ -64,45 +64,56 @@ func (s *SmartContract) QueryFormEWithPagination(ctx contractapi.TransactionCont
 		selector["createdById"] = filters.CreatedById
 	}
 
-    if filters.ReferenceNo != "" {
+	if filters.ReferenceNo != "" {
 		selector["referenceNo"] = filters.ReferenceNo
 	}
 
-    if filters.ExportNumber != "" {
+	if filters.ExportNumber != "" {
 		selector["invoice.exportNumber"] = filters.ExportNumber
 	}
 
-    if filters.LotNumber != "" {
-		selector["invoice.lotNumber"] = filters.LotNumber
-	}
-
-    if filters.Status != "" {
+	if filters.Status != "" {
 		selector["status"] = filters.Status
 	}
 
-    if filters.RequestType != "" {
+	if filters.RequestType != "" {
 		selector["requestType"] = filters.RequestType
 	}
 
-    if filters.StartDate != "" && filters.EndDate != "" {
+	if filters.StartDate != "" && filters.EndDate != "" {
 		selector["createdAt"] = map[string]interface{}{
 			"$gte": filters.StartDate,
 			"$lte": filters.EndDate,
 		}
 	}
 
-	// Create query string for counting total records
+	if filters.Search != "" {
+		elemMatch := map[string]interface{}{
+			"$or": []map[string]interface{}{
+				{"containerNumber": filters.Search},
+				{"palletNumber": filters.Search},
+			},
+		}
+		selector["$or"] = []map[string]interface{}{
+			{"invoice.productAndPackaging": map[string]interface{}{"$elemMatch": elemMatch}},
+			{"invoice.invoiceNumber": filters.Search},
+		}
+	}
+
 	countQueryString, err := json.Marshal(map[string]interface{}{
 		"selector": selector,
 		"use_index": []string{
-            "_design/index-CreatedAt",
-            "index-CreatedAt",
-        },
+			"_design/index-CreatedAt",
+			"index-CreatedAt",
+		},
 	})
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal count query string: %v", err)
 	}
+
+	// Log the count query string
+	fmt.Printf("Count query string: %s\n", string(countQueryString))
 
 	// Execute the count query
 	countResultsIterator, err := ctx.GetStub().GetQueryResult(string(countQueryString))
@@ -135,17 +146,18 @@ func (s *SmartContract) QueryFormEWithPagination(ctx contractapi.TransactionCont
 		"sort": []map[string]string{
 			{"createdAt": "desc"},
 		},
-        "use_index": []string{
-            "_design/index-CreatedAt",
-            "index-CreatedAt",
-        },
+		"use_index": []string{
+			"_design/index-CreatedAt",
+			"index-CreatedAt",
+		},
 	})
-
-	fmt.Printf("Packaging query %v", queryString)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal query string: %v", err)
 	}
+
+	// Log the paginated query string
+	fmt.Printf("Paginated query string: %s\n", string(queryString))
 
 	// Execute the paginated query
 	resultsIterator, _, err := ctx.GetStub().GetQueryResultWithPagination(string(queryString), int32(filters.Limit), "")
@@ -174,6 +186,8 @@ func (s *SmartContract) QueryFormEWithPagination(ctx contractapi.TransactionCont
 		Total: totalCount,
 	}, nil
 }
+
+
 
 func (s *SmartContract) ReadFormE(ctx contractapi.TransactionContextInterface, referenceNo string) (*models.TransactionFormE, error) {
 	formEAsBytes, err := ctx.GetStub().GetState(referenceNo)
@@ -264,3 +278,31 @@ func (s *SmartContract) CancelFormE(ctx contractapi.TransactionContextInterface,
 
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
+
+func (s *SmartContract) GetFormEByReferenceId(ctx contractapi.TransactionContextInterface, referenceId string) (*models.TransactionFormE, error) {
+	queryFormE := fmt.Sprintf(`{"selector":{"referenceNo":"%s", "docType": "formE"}}`, referenceId)
+
+	resultsFormE, err := ctx.GetStub().GetQueryResult(queryFormE)
+	if err != nil {
+		return nil, fmt.Errorf("error querying chaincode: %v", err)
+	}
+	defer resultsFormE.Close()
+
+	if !resultsFormE.HasNext() {
+		return &models.TransactionFormE{}, nil
+	}
+
+	queryResponse, err := resultsFormE.Next()
+	if err != nil {
+		return nil, fmt.Errorf("error getting next query result: %v", err)
+	}
+
+	var asset models.TransactionFormE
+	err = json.Unmarshal(queryResponse.Value, &asset)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling asset JSON: %v", err)
+	}
+
+	return &asset, nil
+}
+

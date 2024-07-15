@@ -65,16 +65,17 @@ type TransactionFormE struct {
 }
 
 type FormEFilterParams struct {
-	CreatedById                string   `json:"createdById"`
-	ReferenceNo       		   string    `json:"referenceNo"`
-	ExportNumber     		   string    `json:"exportNumber"`
-	RequestType             string  `json:"requestType"`
-	LotNumber         		   string    `json:"lotNumber"`
-	StartDate   			   string 	 `json:"startDate"`
-	EndDate                    string 	 `json:"endDate"`
+	Search              	   string  `json:"search"`
+	CreatedById                string  `json:"createdById"`
+	ReferenceNo       		   string  `json:"referenceNo"`
+	ExportNumber     		   string  `json:"exportNumber"`
+	RequestType                string  `json:"requestType"`
+	LotNumber         		   string  `json:"lotNumber"`
+	StartDate   			   string  `json:"startDate"`
+	EndDate                    string  `json:"endDate"`
 	Status                     string  `json:"status"`
-	Skip                       int    	 `json:"skip"`
-	Limit                      int    	 `json:"limit"`
+	Skip                       int     `json:"skip"`
+	Limit                      int     `json:"limit"`
 }
 
 type TransactionFormEResponse struct {
