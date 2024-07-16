@@ -20,4 +20,5 @@ const (
 	Packaging DocType = "packaging"
 	Hscode DocType = "hscode"
 	FormE DocType = "formE"
+	PlantType DocType = "plantType"
 )

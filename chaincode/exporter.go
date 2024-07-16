@@ -49,7 +49,6 @@ func (s *SmartContract) CreateExporter(
 		Id:        input.Id,
 		CertId:    input.CertId,
 		PlantType:    input.PlantType,
-		Name:    input.Name,
 		Address:    input.Address,
 		District:    input.District,
 		Province:    input.Province,
@@ -149,7 +148,6 @@ func (s *SmartContract) CreateExporterCsv(
 			Id:          input.Id,
 			CertId:      input.CertId,
 			PlantType:   input.PlantType,
-			Name:        input.Name,
 			Address:     input.Address,
 			District:    input.District,
 			Province:    input.Province,
@@ -160,7 +158,8 @@ func (s *SmartContract) CreateExporterCsv(
 			Owner:       clientIDG,
 			OrgName:     orgNameG,
 			DocType:     models.Exporter,
-			CreatedAt:   utils.GenerateTimestamp(),
+			CreatedAt:   input.CreatedAt,
+			UpdatedAt:   input.UpdatedAt,
 		}
 
 		// Marshal the asset to JSON
@@ -216,7 +215,6 @@ func (s *SmartContract) UpdateExporter(ctx contractapi.TransactionContextInterfa
 	asset.CertId = input.CertId
 	asset.UpdatedAt = timestamp
 	asset.PlantType = input.PlantType
-	asset.Name = input.Name
 	asset.Address = input.Address
 	asset.PostCode = input.PostCode
 	asset.District = input.District

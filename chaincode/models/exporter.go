@@ -5,7 +5,6 @@ type TransactionExporter struct {
 	CertId    string    `json:"certId"`
 	Owner     string    `json:"owner"`
 	PlantType     string    `json:"plantType"`
-	Name     string    `json:"name"`
 	Address     string    `json:"address"`
 	District     string    `json:"district"`
 	Province     string    `json:"province"`

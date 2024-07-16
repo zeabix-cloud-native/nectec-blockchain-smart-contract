@@ -159,7 +159,6 @@ func (s *SmartContract) GetAllGMP(ctx contractapi.TransactionContextInterface, a
         asset.IsCanDelete = true
 
         salesQueryString := fmt.Sprintf(`{
-			"limit": 1000,
             "selector": {
                 "docType": "packing",
                 "gmp": "%s"
