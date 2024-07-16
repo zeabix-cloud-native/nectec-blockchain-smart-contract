@@ -3,8 +3,6 @@ package chaincode
 import (
 	"encoding/json"
 	"fmt"
-	"sort"
-	"time"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
@@ -37,15 +35,16 @@ func (s SmartContract) CreateRegulatorProfile(
 	clientID, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
-	timestamp := utils.GenerateTimestamp()
-
 	asset := models.TransactionRegulator{
 		Id:        input.Id,
 		CertId:    input.CertId,
+		UserId:    input.UserId,
 		Owner:     clientID,
 		OrgName:   orgName,
-		UpdatedAt: timestamp,
-		CreatedAt: timestamp,
+		DocType:   models.Regulator,
+		ProfileImg: input.ProfileImg,
+		UpdatedAt: input.CreatedAt,
+		CreatedAt: input.UpdatedAt,
 	}
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
@@ -71,11 +70,11 @@ func (s SmartContract) UpdateRegulatorProfile(ctx contractapi.TransactionContext
 		return utils.ReturnError(utils.UNAUTHORIZE)
 	}
 
-	timestamp := utils.GenerateTimestamp()
-
 	asset.Id = input.Id
 	asset.CertId = input.CertId
-	asset.UpdatedAt = timestamp
+	asset.UpdatedAt = input.UpdatedAt
+	asset.ProfileImg = input.ProfileImg
+	asset.UserId = input.UserId
 
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
@@ -102,54 +101,101 @@ func (s *SmartContract) ReadRegulatorProfile(ctx contractapi.TransactionContextI
 	return &asset, nil
 }
 
-func (s *SmartContract) GetAllRegulator(ctx contractapi.TransactionContextInterface, args string) (*models.RegulatorGetAllResponse, error) {
-
-	var filterRegulator = map[string]interface{}{}
-
-	entityGetAll := models.FilterGetAllRegulator{}
-	interfaceRegulator, err := utils.Unmarshal(args, entityGetAll)
+func (s *SmartContract) QueryRegulatorWithPagination(ctx contractapi.TransactionContextInterface, filterParams string) (*models.RegulatorGetAllResponse, error) {
+	var filters models.FilterGetAllRegulator
+	err := json.Unmarshal([]byte(filterParams), &filters)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal filter parameters: %v", err)
 	}
-	input := interfaceRegulator.(*models.FilterGetAllRegulator)
 
-	queryStringRegulator, err := utils.BuildQueryString(filterRegulator)
+	selector := map[string]interface{}{
+		"docType": "regulator",
+	}
+
+	if filters.UserId != "" {
+		selector["userId"] = filters.UserId
+	}
+	
+	countQueryString, err := json.Marshal(map[string]interface{}{
+		"selector": selector,
+		"use_index": []string{
+            "_design/index-CreatedAt",
+            "index-CreatedAt",
+        },
+	})
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to marshal count query string: %v", err)
 	}
 
-	total, err := utils.CountTotalResults(ctx, queryStringRegulator)
+	// Execute the count query
+	countResultsIterator, err := ctx.GetStub().GetQueryResult(string(countQueryString))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get count query result: %v", err)
+	}
+	defer countResultsIterator.Close()
+
+	// Count the total number of records
+	var totalCount int
+	for countResultsIterator.HasNext() {
+		_, err := countResultsIterator.Next()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get next count query result: %v", err)
+		}
+		totalCount++
 	}
 
-	if input.Skip > total {
-		return nil, utils.ReturnError(utils.SKIPOVER)
+	// If no records are found, return an empty response
+	if totalCount == 0 {
+		return &models.RegulatorGetAllResponse{
+			Obj:  []*models.TransactionRegulator{},
+			Total: totalCount,
+		}, nil
 	}
 
-	arrRegulator, err := utils.RegulatorFetchResultsWithPagination(ctx, input)
+	// Create query string for paginated results
+	queryString, err := json.Marshal(map[string]interface{}{
+		"selector": selector,
+		"sort": []map[string]string{
+			{"createdAt": "desc"},
+		},
+        "use_index": []string{
+            "_design/index-CreatedAt",
+            "index-CreatedAt",
+        },
+	})
+
+	fmt.Printf("Packaging query %v", queryString)
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to marshal query string: %v", err)
 	}
 
-	sort.Slice(arrRegulator, func(i, j int) bool {
-        t1, err1 := time.Parse(time.RFC3339, arrRegulator[i].CreatedAt)
-        t2, err2 := time.Parse(time.RFC3339, arrRegulator[j].CreatedAt)
-        if err1 != nil || err2 != nil {
-            fmt.Println("Error parsing time:", err1, err2)
-            return false
-        }
-        return t1.After(t2)
-    })
+	// Execute the paginated query
+	resultsIterator, _, err := ctx.GetStub().GetQueryResultWithPagination(string(queryString), int32(filters.Limit), "")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get query result with pagination: %v", err)
+	}
+	defer resultsIterator.Close()
 
-	if len(arrRegulator) == 0 {
-		arrRegulator = []*models.RegulatorTransactionResponse{}
+	var assets []*models.TransactionRegulator
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get next query result: %v", err)
+		}
+
+		var asset models.TransactionRegulator
+		err = json.Unmarshal(queryResponse.Value, &asset)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal query result: %v", err)
+		}
+		assets = append(assets, &asset)
 	}
 
 	return &models.RegulatorGetAllResponse{
-		Data:  "All Regulator",
-		Obj:   arrRegulator,
-		Total: total,
+		Obj:  assets,
+		Total: totalCount,
 	}, nil
 }
 
@@ -165,4 +211,40 @@ func (s *SmartContract) DeleteRegulator(ctx contractapi.TransactionContextInterf
 	// }
 
 	return ctx.GetStub().DelState(assetRegulator.Id)
+}
+
+func (s *SmartContract) GetRegulatorByUserId(ctx contractapi.TransactionContextInterface, regulatorId string) (*models.RegulatorByIdResponse, error) {
+	queryKeyFarmer := fmt.Sprintf(`{"selector":{"userId":"%s", "docType": "regulator"}}`, regulatorId)
+
+	resultsIteratorFarmer, err := ctx.GetStub().GetQueryResult(queryKeyFarmer)
+	var asset *models.TransactionRegulator
+	resData := "Get regulator by regulatorId"
+	if err != nil {
+		return nil, fmt.Errorf("error querying chaincode: %v", err)
+	}
+	defer resultsIteratorFarmer.Close()
+
+	if !resultsIteratorFarmer.HasNext() {
+		resData = "Not found regulator by regulatorId"
+
+		return &models.RegulatorByIdResponse{
+			Data: resData,
+			Obj:  asset,
+		}, nil
+	}
+
+	queryResponse, err := resultsIteratorFarmer.Next()
+	if err != nil {
+		return nil, fmt.Errorf("error getting next query result: %v", err)
+	}
+
+	err = json.Unmarshal(queryResponse.Value, &asset)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling asset JSON: %v", err)
+	}
+
+	return &models.RegulatorByIdResponse{
+		Data: resData,
+		Obj:  asset,
+	}, nil
 }

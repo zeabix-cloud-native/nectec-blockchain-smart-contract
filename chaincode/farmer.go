@@ -68,6 +68,7 @@ func (s *SmartContract) UpdateFarmerProfile(ctx contractapi.TransactionContextIn
 
 	asset.Id = input.Id
 	asset.ProfileImg = input.ProfileImg
+	asset.FarmerGaps = input.FarmerGaps
 	asset.CertId = input.CertId
 	asset.UpdatedAt = input.UpdatedAt
 
@@ -195,16 +196,6 @@ func (s *SmartContract) GetAllFarmerProfile(ctx contractapi.TransactionContextIn
 	if err != nil {
 		return nil, err
 	}
-
-	sort.Slice(arrFarmer, func(i, j int) bool {
-        t1, err1 := time.Parse(time.RFC3339, arrFarmer[i].CreatedAt)
-        t2, err2 := time.Parse(time.RFC3339, arrFarmer[j].CreatedAt)
-        if err1 != nil || err2 != nil {
-            fmt.Println("Error parsing time:", err1, err2)
-            return false
-        }
-        return t1.After(t2)
-    })
 
 	for _, farmer := range arrFarmer {
 		queryString := fmt.Sprintf(`{

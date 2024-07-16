@@ -14,6 +14,13 @@ func FarmerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
 
 	selector := map[string]interface{}{
 		"selector": filter,
+			"sort": []map[string]string{
+			{"createdAt": "desc"},
+		},
+        "use_index": []string{
+            "_design/index-CreatedAt",
+            "index-CreatedAt",
+        },
 	}
 
 	if input.Skip != 0 || input.Limit != 0 {

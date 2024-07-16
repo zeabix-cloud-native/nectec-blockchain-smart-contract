@@ -13,6 +13,7 @@ type TransactionFarmer struct {
 }
 
 type FilterGetAllFarmer struct {
+	Gap   string `json:"gap"`
 	Skip  int `json:"skip"`
 	Limit int `json:"limit"`
 	FarmerGap string `json:"farmerGap"`

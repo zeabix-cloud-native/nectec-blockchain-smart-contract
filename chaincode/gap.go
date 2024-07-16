@@ -81,7 +81,6 @@ func (s *SmartContract) UpdateGap(ctx contractapi.TransactionContextInterface, a
 	asset.ExpireDate = input.ExpireDate
 	asset.District = input.District
 	asset.Province = input.Province
-	asset.UpdatedAt = input.UpdatedAt
 	asset.Source = input.Source
 	asset.FarmerID = input.FarmerID
 	asset.UpdatedAt = input.UpdatedAt

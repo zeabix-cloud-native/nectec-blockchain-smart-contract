@@ -11,6 +11,7 @@ type DocType string
 const (
 	Nectec DocType = "nectec"
 	Farmer DocType = "farmer"
+	Regulator DocType = "regulator"
 	Gap DocType = "gap"
 	Gmp DocType = "gmp"
 	Exporter DocType = "exporter"
