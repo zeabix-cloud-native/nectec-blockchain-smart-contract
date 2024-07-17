@@ -84,3 +84,173 @@ func (s *SmartContract) CreatePlantTypeCsv(
 
 	return nil
 }
+
+func (s *SmartContract) ReadPlanType(ctx contractapi.TransactionContextInterface, id string) (*models.PlantTypeModel, error) {
+
+	assetJSON, err := ctx.GetStub().GetState(id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from world state: %v", err)
+	}
+	if assetJSON == nil {
+		return nil, fmt.Errorf("the asset %s does not exist", id)
+	}
+
+	var asset models.PlantTypeModel
+	err = json.Unmarshal(assetJSON, &asset)
+	if err != nil {
+		return nil, err
+	}
+
+	return &asset, nil
+}
+
+func (s *SmartContract) UpdatePlantType(ctx contractapi.TransactionContextInterface,
+	args string) error {
+
+	entityPlanType := models.PlantTypeModel{}
+	inputInterface, err := utils.Unmarshal(args, entityPlanType)
+	utils.HandleError(err)
+	input := inputInterface.(*models.PlantTypeModel)
+
+	asset, err := s.ReadPlanType(ctx, input.Id)
+	utils.HandleError(err)
+
+	asset.UpdatedAt = input.UpdatedAt
+	asset.ExporterId = input.ExporterId
+
+	assetJSON, errE := json.Marshal(asset)
+	utils.HandleError(errE)
+
+	return ctx.GetStub().PutState(input.Id, assetJSON)
+}
+
+func (s *SmartContract) QueryPlanTypeWithPagination(ctx contractapi.TransactionContextInterface, filterParams string) (*models.PlantTypeResponse, error) {
+	var filters models.PlanTypeFilterParams
+	err := json.Unmarshal([]byte(filterParams), &filters)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal filter parameters: %v", err)
+	}
+
+	selector := map[string]interface{}{
+		"docType": "plantType",
+	}
+
+	if filters.AvailablePlanType != "" {
+		selector["exporterId"] = ""
+	}
+
+	if filters.PlantType != "" {
+		selector["plantType"] = filters.PlantType
+	}
+
+	// Create query string for counting total records
+	countQueryString, err := json.Marshal(map[string]interface{}{
+		"selector": selector,
+		"use_index": []string{
+            "_design/index-CreatedAt",
+            "index-CreatedAt",
+        },
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal count query string: %v", err)
+	}
+
+	// Execute the count query
+	countResultsIterator, err := ctx.GetStub().GetQueryResult(string(countQueryString))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get count query result: %v", err)
+	}
+	defer countResultsIterator.Close()
+
+	// Count the total number of records
+	var totalCount int
+	for countResultsIterator.HasNext() {
+		_, err := countResultsIterator.Next()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get next count query result: %v", err)
+		}
+		totalCount++
+	}
+
+	// If no records are found, return an empty response
+	if totalCount == 0 {
+		return &models.PlantTypeResponse{
+			Data:  []*models.PlantTypeModel{},
+			Total: totalCount,
+		}, nil
+	}
+
+	// Create query string for paginated results
+	queryString, err := json.Marshal(map[string]interface{}{
+		"selector": selector,
+		"sort": []map[string]string{
+			{"createdAt": "desc"},
+		},
+        "use_index": []string{
+            "_design/index-CreatedAt",
+            "index-CreatedAt",
+        },
+	})
+
+	fmt.Printf("Packaging query %v", queryString)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal query string: %v", err)
+	}
+
+	// Execute the paginated query
+	resultsIterator, _, err := ctx.GetStub().GetQueryResultWithPagination(string(queryString), int32(filters.Limit), "")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get query result with pagination: %v", err)
+	}
+	defer resultsIterator.Close()
+
+	var assets []*models.PlantTypeModel
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get next query result: %v", err)
+		}
+
+		var asset models.PlantTypeModel
+		err = json.Unmarshal(queryResponse.Value, &asset)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal query result: %v", err)
+		}
+		assets = append(assets, &asset)
+	}
+
+	return &models.PlantTypeResponse{
+		Data:  assets,
+		Total: totalCount,
+	}, nil
+}
+
+func (s *SmartContract) GetPlantTypeByPlantType(ctx contractapi.TransactionContextInterface, plantType string) (*models.PlantTypeModel, error) {
+	// Get the asset using CertID
+	queryKeyPlantType := fmt.Sprintf(`{"selector":{"plantType":"%s", "docType":"plantType"}}`, plantType)
+
+	resultsIteratorPlantType, err := ctx.GetStub().GetQueryResult(queryKeyPlantType)
+	var asset *models.PlantTypeModel
+	if err != nil {
+		return nil, fmt.Errorf("error querying chaincode: %v", err)
+	}
+	defer resultsIteratorPlantType.Close()
+
+	if !resultsIteratorPlantType.HasNext() {
+		return &models.PlantTypeModel{}, nil
+	}
+
+	queryResponse, err := resultsIteratorPlantType.Next()
+	if err != nil {
+		return nil, fmt.Errorf("error getting next query result: %v", err)
+	}
+
+	err = json.Unmarshal(queryResponse.Value, &asset)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling asset JSON: %v", err)
+	}
+
+	return asset, nil
+}

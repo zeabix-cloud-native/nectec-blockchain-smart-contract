@@ -18,3 +18,15 @@ type PlantTypeModel struct {
 	CreatedAt   string      `json:"createdAt"`
     UpdatedAt   string      `json:"updatedAt"`
 }
+
+type PlanTypeFilterParams struct {
+	AvailablePlanType	string    	 `json:"availablePlantType"`
+	PlantType			string    	 `json:"plantType"`
+	Skip				int    	 	 `json:"skip"`
+	Limit   			int    	 	 `json:"limit"`
+}
+
+type PlantTypeResponse struct {
+	Data   []*PlantTypeModel `json:"obj"`
+	Total int                   `json:"total"`
+}

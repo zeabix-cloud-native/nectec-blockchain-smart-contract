@@ -5,14 +5,8 @@ type TransactionExporter struct {
 	CertId    string    `json:"certId"`
 	Owner     string    `json:"owner"`
 	PlantType     string    `json:"plantType"`
-	Address     string    `json:"address"`
-	District     string    `json:"district"`
-	Province     string    `json:"province"`
-	PostCode     string    `json:"postCode"`
-	Email     string    `json:"email"`
-	IssueDate     string    `json:"issueDate"`
-	ExpiredDate     string    `json:"expiredDate"`
 	OrgName   string    `json:"orgName"`
+	PlantTypeDetail PlantTypeModel `json:"plantTypeDetail"`
 	DocType   DocType   `json:"docType"`
 	UpdatedAt string `json:"updatedAt"`
 	CreatedAt string `json:"createdAt"`
@@ -33,20 +27,17 @@ type ExporterFilterGetAll struct {
 type ExporterTransactionResponse struct {
 	Id        string    `json:"id"`
 	CertId    string    `json:"certId"`
-	Owner     string    `json:"owner"`
 	PlantType     string    `json:"plantType"`
 	PostCode     string    `json:"postCode"`
-	Name     string    `json:"name"`
 	Address     string    `json:"address"`
 	District     string    `json:"district"`
 	Province     string    `json:"province"`
 	Email     string    `json:"email"`
 	IssueDate     string    `json:"issueDate"`
 	ExpiredDate     string    `json:"expiredDate"`
-	OrgName   string    `json:"orgName"`
-	DocType   DocType   `json:"docType"`
 	UpdatedAt string `json:"updatedAt"`
 	CreatedAt string `json:"createdAt"`
+	PlantTypeDetail PlantTypeModel `json:"plantTypeDetail"`
 }
 
 type ExporterGetAllResponse struct {

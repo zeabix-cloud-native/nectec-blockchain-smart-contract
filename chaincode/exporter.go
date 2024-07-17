@@ -49,13 +49,6 @@ func (s *SmartContract) CreateExporter(
 		Id:        input.Id,
 		CertId:    input.CertId,
 		PlantType:    input.PlantType,
-		Address:    input.Address,
-		District:    input.District,
-		Province:    input.Province,
-		PostCode:    input.PostCode,
-		Email:    input.Email,
-		IssueDate:    input.IssueDate,
-		ExpiredDate:    input.ExpiredDate,
 		Owner:     clientID,
 		OrgName:   orgName,
 		UpdatedAt: timestamp,
@@ -144,20 +137,14 @@ func (s *SmartContract) CreateExporterCsv(
 		}
 
 		// Create the asset
-		assetG := models.TransactionExporter{
+		assetG := models.TransactionExporter {
 			Id:          input.Id,
 			CertId:      input.CertId,
 			PlantType:   input.PlantType,
-			Address:     input.Address,
-			District:    input.District,
-			Province:    input.Province,
-			PostCode:    input.PostCode,
-			Email:       input.Email,
-			IssueDate:   input.IssueDate,
-			ExpiredDate: input.ExpiredDate,
 			Owner:       clientIDG,
 			OrgName:     orgNameG,
 			DocType:     models.Exporter,
+			PlantTypeDetail: input.PlantTypeDetail,
 			CreatedAt:   input.CreatedAt,
 			UpdatedAt:   input.UpdatedAt,
 		}
@@ -202,27 +189,9 @@ func (s *SmartContract) UpdateExporter(ctx contractapi.TransactionContextInterfa
 	asset, err := s.ReadExporter(ctx, input.Id)
 	utils.HandleError(err)
 
-	clientID, err := utils.GetIdentity(ctx)
-	utils.HandleError(err)
-
-	if clientID != asset.Owner {
-		return fmt.Errorf(utils.UNAUTHORIZE)
-	}
-
-	timestamp := utils.GenerateTimestamp()
-
-	asset.Id = input.Id
-	asset.CertId = input.CertId
-	asset.UpdatedAt = timestamp
+	asset.UpdatedAt = input.UpdatedAt
 	asset.PlantType = input.PlantType
-	asset.Address = input.Address
-	asset.PostCode = input.PostCode
-	asset.District = input.District
-	asset.Province = input.Province
-	asset.Email = input.Email
-	asset.IssueDate = input.IssueDate
-	asset.ExpiredDate = input.ExpiredDate
-	asset.UpdatedAt = timestamp
+	asset.PlantTypeDetail = input.PlantTypeDetail
 
 	assetJSON, errE := json.Marshal(asset)
 	utils.HandleError(errE)
@@ -282,6 +251,71 @@ func (s *SmartContract) ReadExporter(ctx contractapi.TransactionContextInterface
 	return &asset, nil
 }
 
+func (s *SmartContract) GetExporterByExporterId(ctx contractapi.TransactionContextInterface, exporterId string) (*models.ExporterTransactionResponse, error) {
+	queryKeyFarmer := fmt.Sprintf(`{
+		"selector":{"id":"%s", "docType": "exporter"},
+		"use_index": [
+            "_design/index-CreatedAt",
+            "index-CreatedAt"
+        ]
+	}`, exporterId)
+
+	resultsIteratorFarmer, err := ctx.GetStub().GetQueryResult(queryKeyFarmer)
+	var asset *models.ExporterTransactionResponse
+	if err != nil {
+		return nil, fmt.Errorf("error querying chaincode: %v", err)
+	}
+	defer resultsIteratorFarmer.Close()
+
+	if !resultsIteratorFarmer.HasNext() {
+		return &models.ExporterTransactionResponse{}, nil
+	}
+
+	queryResponse, err := resultsIteratorFarmer.Next()
+	if err != nil {
+		return nil, fmt.Errorf("error getting next query result: %v", err)
+	}
+
+	err = json.Unmarshal(queryResponse.Value, &asset)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling asset JSON: %v", err)
+	}
+
+	queryString := fmt.Sprintf(`{
+		"selector": {
+			"docType": "plantType",
+			"exporterId": "%s"
+		},
+		"use_index": [
+            "_design/index-CreatedAt",
+            "index-CreatedAt"
+        ]
+	}`, asset.Id)
+
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query related gmp documents: %v", err)
+	}
+	defer resultsIterator.Close()
+
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var plantType models.PlantTypeModel
+		err = json.Unmarshal(queryResponse.Value, &plantType)
+		if err != nil {
+			return nil, err
+		}
+
+		asset.PlantTypeDetail = plantType
+	}
+
+	return asset, nil
+}
+
 func (s *SmartContract) GetAllExporter(ctx contractapi.TransactionContextInterface, args string) (*models.ExporterGetAllResponse, error) {
 	entityGetAll := models.ExporterFilterGetAll{}
 	interfaceE, err := utils.Unmarshal(args, entityGetAll)
@@ -295,17 +329,6 @@ func (s *SmartContract) GetAllExporter(ctx contractapi.TransactionContextInterfa
 	if err != nil {
 		return nil, err
 	}
-
-
-	sort.Slice(arrExporter, func(i, j int) bool {
-        t1, err1 := time.Parse(time.RFC3339, arrExporter[i].CreatedAt)
-        t2, err2 := time.Parse(time.RFC3339, arrExporter[j].CreatedAt)
-        if err1 != nil || err2 != nil {
-            fmt.Println("Error parsing time:", err1, err2)
-            return false
-        }
-        return t1.After(t2)
-    })
 
 	if len(arrExporter) == 0 {
 		arrExporter = []*models.ExporterTransactionResponse{}

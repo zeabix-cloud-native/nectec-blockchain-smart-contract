@@ -58,6 +58,10 @@ func ExporterFetchResultsWithPagination(ctx contractapi.TransactionContextInterf
 
     selector := map[string]interface{}{
         "selector": filter,
+        "use_index": []string{
+			"_design/index-CreatedAt",
+			"index-CreatedAt",
+		},
     }
 
     if search != nil && *search != "" {
@@ -67,8 +71,9 @@ func ExporterFetchResultsWithPagination(ctx contractapi.TransactionContextInterf
                 filter,
                 {
                     "$or": []map[string]interface{}{
-                        {"plantType": map[string]interface{}{"$regex": searchTerm}},
-                        {"name": map[string]interface{}{"$regex": searchTerm}},
+                        {"id": map[string]interface{}{"$regex": searchTerm}},
+                        {"plantTypeDetail.plantType": map[string]interface{}{"$regex": searchTerm}},
+                        {"plantTypeDetail.name": map[string]interface{}{"$regex": searchTerm}},
                     },
                 },
             },
@@ -108,6 +113,7 @@ func ExporterFetchResultsWithPagination(ctx contractapi.TransactionContextInterf
     if err != nil {
         return nil, 0, err
     }
+	fmt.Printf("queryString %s", getStringE)
 
     queryGmp, _, err := ctx.GetStub().GetQueryResultWithPagination(string(getStringE), int32(input.Limit), "")
     if err != nil {
