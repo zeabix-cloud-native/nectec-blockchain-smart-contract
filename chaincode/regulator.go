@@ -153,6 +153,14 @@ func (s *SmartContract) QueryRegulatorWithPagination(ctx contractapi.Transaction
 		}, nil
 	}
 
+	// Apply pagination
+	if filters.Skip > 0 {
+		selector["skip"] = filters.Skip
+	}
+	if filters.Limit > 0 {
+		selector["limit"] = filters.Limit
+	}
+
 	// Create query string for paginated results
 	queryString, err := json.Marshal(map[string]interface{}{
 		"selector": selector,

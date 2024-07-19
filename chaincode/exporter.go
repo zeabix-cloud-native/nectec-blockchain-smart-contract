@@ -252,69 +252,77 @@ func (s *SmartContract) ReadExporter(ctx contractapi.TransactionContextInterface
 }
 
 func (s *SmartContract) GetExporterByExporterId(ctx contractapi.TransactionContextInterface, exporterId string) (*models.ExporterTransactionResponse, error) {
-	queryKeyFarmer := fmt.Sprintf(`{
-		"selector":{"id":"%s", "docType": "exporter"},
-		"use_index": [
-            "_design/index-CreatedAt",
-            "index-CreatedAt"
-        ]
-	}`, exporterId)
+    // Define the query for the exporter
+    queryKeyExporter := fmt.Sprintf(`{
+        "selector": {"id": "%s", "docType": "exporter"},
+        "use_index": ["_design/index-DocTypeId", "index-DocTypeId"]
+    }`, exporterId)
 
-	resultsIteratorFarmer, err := ctx.GetStub().GetQueryResult(queryKeyFarmer)
-	var asset *models.ExporterTransactionResponse
-	if err != nil {
-		return nil, fmt.Errorf("error querying chaincode: %v", err)
-	}
-	defer resultsIteratorFarmer.Close()
+    resultsIteratorExporter, err := ctx.GetStub().GetQueryResult(queryKeyExporter)
+    if err != nil {
+        return nil, fmt.Errorf("error querying exporter: %v", err)
+    }
+    defer resultsIteratorExporter.Close()
 
-	if !resultsIteratorFarmer.HasNext() {
-		return &models.ExporterTransactionResponse{}, nil
-	}
+    var exporter *models.ExporterTransactionResponse
+    if resultsIteratorExporter.HasNext() {
+        queryResponse, err := resultsIteratorExporter.Next()
+        if err != nil {
+            return nil, fmt.Errorf("error getting next query result: %v", err)
+        }
 
-	queryResponse, err := resultsIteratorFarmer.Next()
-	if err != nil {
-		return nil, fmt.Errorf("error getting next query result: %v", err)
-	}
+        err = json.Unmarshal(queryResponse.Value, &exporter)
+        if err != nil {
+            return nil, fmt.Errorf("error unmarshalling exporter JSON: %v", err)
+        }
+    } else {
+        return &models.ExporterTransactionResponse{}, nil
+    }
 
-	err = json.Unmarshal(queryResponse.Value, &asset)
-	if err != nil {
-		return nil, fmt.Errorf("error unmarshalling asset JSON: %v", err)
-	}
+    // Query for plant types related to the exporter
+    queryPlantTypes := fmt.Sprintf(`{
+        "selector": {"docType": "plantType", "exporterId": "%s"},
+        "use_index": ["_design/index-DocTypeExporterId", "index-DocTypeExporterId"]
+    }`, exporterId)
 
-	queryString := fmt.Sprintf(`{
-		"selector": {
-			"docType": "plantType",
-			"exporterId": "%s"
-		},
-		"use_index": [
-            "_design/index-CreatedAt",
-            "index-CreatedAt"
-        ]
-	}`, asset.Id)
+    resultsIteratorPlantTypes, err := ctx.GetStub().GetQueryResult(queryPlantTypes)
+    if err != nil {
+        return nil, fmt.Errorf("failed to query plant types: %v", err)
+    }
+    defer resultsIteratorPlantTypes.Close()
 
-	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query related gmp documents: %v", err)
-	}
-	defer resultsIterator.Close()
+    for resultsIteratorPlantTypes.HasNext() {
+        queryResponse, err := resultsIteratorPlantTypes.Next()
+        if err != nil {
+            return nil, err
+        }
 
-	for resultsIterator.HasNext() {
-		queryResponse, err := resultsIterator.Next()
-		if err != nil {
-			return nil, err
-		}
+        var plantType models.PlantTypeModel
+        err = json.Unmarshal(queryResponse.Value, &plantType)
+        if err != nil {
+            return nil, err
+        }
 
-		var plantType models.PlantTypeModel
-		err = json.Unmarshal(queryResponse.Value, &plantType)
-		if err != nil {
-			return nil, err
-		}
+        exporter.PlantTypeDetail = plantType
+    }
 
-		asset.PlantTypeDetail = plantType
-	}
+    // Check if the exporter can be deleted
+    queryFormE := fmt.Sprintf(`{
+        "selector": {"docType": "formE", "createdById": "%s"},
+        "use_index": ["_design/index-DocTypeCreatedById", "index-DocTypeCreatedById"]
+    }`, exporterId)
 
-	return asset, nil
+    resultsIteratorFormE, err := ctx.GetStub().GetQueryResult(queryFormE)
+    if err != nil {
+        return nil, fmt.Errorf("failed to query formE documents: %v", err)
+    }
+    defer resultsIteratorFormE.Close()
+
+    exporter.IsCanDelete = !resultsIteratorFormE.HasNext()
+
+    return exporter, nil
 }
+
 
 func (s *SmartContract) GetAllExporter(ctx contractapi.TransactionContextInterface, args string) (*models.ExporterGetAllResponse, error) {
 	entityGetAll := models.ExporterFilterGetAll{}
@@ -333,12 +341,75 @@ func (s *SmartContract) GetAllExporter(ctx contractapi.TransactionContextInterfa
 	if len(arrExporter) == 0 {
 		arrExporter = []*models.ExporterTransactionResponse{}
 	}
+	for _, asset := range arrExporter {
+		asset.IsCanDelete = true
+
+		queryStr := fmt.Sprintf(`{
+			"selector": {
+				"docType": "formE",
+				"createdById": "%s"
+			},
+			"use_index": [
+				"_design/index-CreatedAt",
+				"index-CreatedAt"
+        	]
+		}`, asset.Id)
+
+		salesResultsIterator, err := ctx.GetStub().GetQueryResult(queryStr)
+		if err != nil {
+			return nil, fmt.Errorf("failed to query related sales: %v", err)
+		}
+		defer salesResultsIterator.Close()
+
+		// If there are any related sales, set isCanDelete to false
+		if salesResultsIterator.HasNext() {
+			asset.IsCanDelete = false
+		}
+	}
 
 	return &models.ExporterGetAllResponse{
 		Data:  "All Exporter",
 		Obj:   arrExporter,
 		Total: total,
 	}, nil
+}
+
+func FetchFormEByExporterId(ctx contractapi.TransactionContextInterface, id string) ([]*models.TransactionFormE, error) {
+    filter := map[string]interface{}{
+        "selector": map[string]interface{}{
+            "docType": "formE",
+            "createdById": id,
+        },
+    }
+
+    getStringFormE, err := json.Marshal(filter)
+    if err != nil {
+        return nil, err
+    }
+
+    queryFormE, err := ctx.GetStub().GetQueryResult(string(getStringFormE))
+    if err != nil {
+        return nil, err
+    }
+    defer queryFormE.Close()
+
+    var dataFormE []*models.TransactionFormE
+    for queryFormE.HasNext() {
+        queryResponse, err := queryFormE.Next()
+        if err != nil {
+            return nil, err
+        }
+
+        var asset models.TransactionFormE
+        err = json.Unmarshal(queryResponse.Value, &asset)
+        if err != nil {
+            return nil, err
+        }
+
+        dataFormE = append(dataFormE, &asset)
+    }
+
+    return dataFormE, nil
 }
 
 

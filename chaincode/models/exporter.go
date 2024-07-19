@@ -37,6 +37,7 @@ type ExporterTransactionResponse struct {
 	ExpiredDate     string    `json:"expiredDate"`
 	UpdatedAt string `json:"updatedAt"`
 	CreatedAt string `json:"createdAt"`
+	IsCanDelete bool       `json:"isCanDelete"`
 	PlantTypeDetail PlantTypeModel `json:"plantTypeDetail"`
 }
 

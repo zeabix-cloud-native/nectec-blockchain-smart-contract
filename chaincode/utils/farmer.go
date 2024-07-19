@@ -23,11 +23,14 @@ func FarmerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
         },
 	}
 
-	if input.Skip != 0 || input.Limit != 0 {
+
+	if input.Skip > 0 {
 		selector["skip"] = input.Skip
+	}
+	if input.Limit > 0 {
 		selector["limit"] = input.Limit
 	}
-
+	
 	getString, err := json.Marshal(selector)
 	if err != nil {
 		return nil, err

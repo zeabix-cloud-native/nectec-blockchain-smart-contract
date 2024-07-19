@@ -1,0 +1,8 @@
+{
+  "index": {
+    "fields": ["docType", "exporterId"]
+  },
+  "ddoc": "index-DocTypeExporterId",
+  "name": "index-DocTypeExporterId",
+  "type": "json"
+}

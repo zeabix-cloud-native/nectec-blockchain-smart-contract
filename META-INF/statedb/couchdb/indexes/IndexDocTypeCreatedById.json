@@ -1,0 +1,8 @@
+{
+  "index": {
+    "fields": ["docType", "createdById"]
+  },
+  "ddoc": "index-DocTypeCreatedById",
+  "name": "index-DocTypeCreatedById",
+  "type": "json"
+}
