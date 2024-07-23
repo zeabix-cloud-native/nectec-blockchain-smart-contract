@@ -43,7 +43,7 @@ type FilterGetAllPacking struct {
 	PackingHouseName            string    `json:"packingHouseName"`
 	ForecastWeightFrom *float32 `json:"forecastWeightFrom"`
 	ForecastWeightTo   *float32 `json:"forecastWeightTo"`
-	ProcessStatus      *int     `json:"processStatus"`
+	ProcessStatus      *string     `json:"processStatus"`
 }
 
 type PackingTransactionResponse struct {

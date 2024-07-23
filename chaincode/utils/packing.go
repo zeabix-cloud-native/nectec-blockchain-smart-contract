@@ -3,6 +3,8 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
@@ -12,6 +14,8 @@ func PackingSetFilter(input *models.FilterGetAllPacking) map[string]interface{} 
 	var filter = map[string]interface{}{}
 
 	filter["docType"] = "packing"
+
+	const RegexKey = "$regex"
 
 	if input.Gap != nil {
 		filter["gap"] = *input.Gap
@@ -58,9 +62,28 @@ func PackingSetFilter(input *models.FilterGetAllPacking) map[string]interface{} 
 	}
 
 	if input.ProcessStatus != nil {
-		filter["processStatus"] = *input.ProcessStatus
+		// Split the comma-separated string
+		processStatusArray := strings.Split(*input.ProcessStatus, ",")
+		// Trim spaces and collect unique statuses as integers
+		var trimmedArray []int
+		uniqueStatuses := make(map[int]bool)
+		for _, status := range processStatusArray {
+			trimmedStatus := strings.TrimSpace(status)
+			if trimmedStatus != "" {
+				statusInt, err := strconv.Atoi(trimmedStatus)
+				if err == nil && !uniqueStatuses[statusInt] {
+					trimmedArray = append(trimmedArray, statusInt)
+					uniqueStatuses[statusInt] = true
+				}
+			}
+		}
+		if len(trimmedArray) > 0 {
+			filter["processStatus"] = map[string]interface{}{
+				"$in": trimmedArray,
+			}
+		}
 	}
-
+	
 	filter["docType"] = "packing"
 
 	return filter
@@ -104,6 +127,8 @@ func PackingFetchResultsWithPagination(ctx contractapi.TransactionContextInterfa
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Printf("Packing %s query\n", getStringPacking)
 
 	queryPacking, _, err := ctx.GetStub().GetQueryResultWithPagination(string(getStringPacking), int32(input.Limit), "")
 	if err != nil {

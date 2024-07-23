@@ -35,8 +35,6 @@ func (s *SmartContract) CreatePacking(
 	clientIDPacking, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
-	timestamp := utils.GenerateTimestamp()
-
 	asset := models.TransactionPacking{
 		Id:             input.Id,
 		OrderID:        input.OrderID,
@@ -59,8 +57,8 @@ func (s *SmartContract) CreatePacking(
 		SellingStep:  	input.SellingStep,
 		Owner:          clientIDPacking,
 		OrgName:        orgName,
-		UpdatedAt:      timestamp,
-		CreatedAt:      timestamp,
+		UpdatedAt:      input.UpdatedAt,
+		CreatedAt:      input.CreatedAt,
 		DocType: 		models.Packing,
 	}
 	assetJSON, err := json.Marshal(asset)
@@ -69,46 +67,55 @@ func (s *SmartContract) CreatePacking(
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
-func (s *SmartContract) UpdatePacking(ctx contractapi.TransactionContextInterface,
-	args string) error {
+func (s *SmartContract) UpdatePacking(ctx contractapi.TransactionContextInterface, args string) error {
+	fmt.Println("Start update packing")
 
-	entityPacking := models.TransactionPacking{}
-	inputInterface, err := utils.Unmarshal(args, entityPacking)
-	utils.HandleError(err)
-	input := inputInterface.(*models.TransactionPacking)
+	// Initialize entityPacking and unmarshal the input args into it
+	var entityPacking models.TransactionPacking
+	err := json.Unmarshal([]byte(args), &entityPacking)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal input: %v", err)
+	}
 
-	asset, err := s.ReadPacking(ctx, input.Id)
-	utils.HandleError(err)
+	fmt.Println("Start read packing")
+	asset, err := s.ReadPacking(ctx, entityPacking.Id)
+	if err != nil {
+		return fmt.Errorf("failed to read asset: %v", err)
+	}
 
-	timestamp := utils.GenerateTimestamp()
+	fmt.Println("Modify packing model")
+	asset.ForecastWeight = entityPacking.ForecastWeight
+	asset.ActualWeight = entityPacking.ActualWeight
+	asset.SavedTime = entityPacking.SavedTime
+	asset.ApprovedDate = entityPacking.ApprovedDate
+	asset.ApprovedType = entityPacking.ApprovedType
+	asset.FinalWeight = entityPacking.FinalWeight
+	asset.Province = entityPacking.Province
+	asset.District = entityPacking.District
+	asset.Remark = entityPacking.Remark
+	asset.CancelReason = entityPacking.CancelReason
+	asset.Gmp = entityPacking.Gmp
+	asset.Gap = entityPacking.Gap
+	asset.ProcessStatus = entityPacking.ProcessStatus
+	asset.SellingStep = entityPacking.SellingStep
+	asset.UpdatedAt = entityPacking.UpdatedAt
 
-	asset.Id = input.Id
-	asset.OrderID = input.OrderID
-	asset.FarmerID = input.FarmerID // not update
-	asset.ForecastWeight = input.ForecastWeight
-	asset.ActualWeight = input.ActualWeight
-	asset.SavedTime = input.SavedTime
-	asset.ApprovedDate = input.ApprovedDate
-	asset.ApprovedType = input.ApprovedType
-	asset.FinalWeight = input.FinalWeight
-	asset.Province = input.Province
-	asset.District = input.District
-	asset.Remark = input.Remark
-	asset.CancelReason = input.CancelReason
-	asset.PackerId = input.PackerId // not update
-	asset.Gmp = input.Gmp
-	asset.Gap = input.Gap
-	asset.ProcessStatus = input.ProcessStatus
-	asset.SellingStep = input.SellingStep
-	asset.UpdatedAt = timestamp
-
+	fmt.Println("Modify packing done")
 	assetJSON, errPacking := json.Marshal(asset)
-	utils.HandleError(errPacking)
+	if errPacking != nil {
+		return fmt.Errorf("failed to marshal updated asset: %v", errPacking)
+	}
 
-	ctx.GetStub().SetEvent("UpdateAsset", assetJSON)
+	fmt.Println("Send UpdateAsset event")
+	err = ctx.GetStub().SetEvent("UpdateAsset", assetJSON)
+	if err != nil {
+		return fmt.Errorf("failed to set event: %v", err)
+	}
 
-	return ctx.GetStub().PutState(input.Id, assetJSON)
+	fmt.Printf("Packing %s updated successfully\n", entityPacking.Id)
+	return ctx.GetStub().PutState(entityPacking.Id, assetJSON)
 }
+
 
 func (s *SmartContract) DeletePacking(ctx contractapi.TransactionContextInterface, id string) error {
 
