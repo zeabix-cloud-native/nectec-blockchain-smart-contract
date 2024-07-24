@@ -24,6 +24,10 @@ type PlanTypeFilterParams struct {
 	PlantType			string    	 `json:"plantType"`
 	Skip				int    	 	 `json:"skip"`
 	Limit   			int    	 	 `json:"limit"`
+	CreatedAtFrom  *string `json:"createdAtFrom"`
+	CreatedAtTo *string `json:"createdAtTo"`
+	ExpireDateFrom     *string    `json:"ExpireDateFrom"`
+	ExpireDateTo     *string    `json:"ExpireDateTo"`
 }
 
 type PlantTypeResponse struct {

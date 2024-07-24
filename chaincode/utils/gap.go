@@ -29,6 +29,15 @@ func GapSetFilter(input *models.FilterGetAllGap) map[string]interface{} {
 			"$gte": *input.AreaRaiFrom,
 			"$lte": *input.AreaRaiTo,
 		}
+	} else if (input.AreaRaiFrom != nil) {
+		filter["areaRai"] = map[string]interface{}{
+			"$gte": *input.AreaRaiFrom,
+		}
+	} else if (input.AreaRaiTo != nil) {
+		filter["areaRai"] = map[string]interface{}{
+			"$gte": 0,
+			"$lte": *input.AreaRaiTo,
+		}
 	}
 
 	if input.CreatedAtFrom != nil && input.CreatedAtTo != nil {
@@ -43,6 +52,26 @@ func GapSetFilter(input *models.FilterGetAllGap) map[string]interface{} {
 		} else {
 			fmt.Printf("Error formatting issue dates: %v, %v\n", err1, err2)
 		}
+	} else if (input.CreatedAtFrom != nil) {
+		fromDate, err1 := FormatDate(*input.CreatedAtFrom, false, offset)
+
+		if err1 == nil {
+			filter["createdAt"] = map[string]interface{}{
+				"$gte": fromDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err1)
+		}
+	} else if (input.CreatedAtTo != nil) {
+		toDate, err2 := FormatDate(*input.CreatedAtTo, true, offset)
+
+		if err2 == nil {
+			filter["createdAt"] = map[string]interface{}{
+				"$lte": toDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err2)
+		}
 	}
 
 	if input.ExpireDateFrom != nil && input.ExpireDateTo != nil {
@@ -55,7 +84,27 @@ func GapSetFilter(input *models.FilterGetAllGap) map[string]interface{} {
 				"$lte": toDate,
 			}
 		} else {
-			fmt.Printf("Error formatting expire dates: %v, %v\n", err1, err2)
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err1, err2)
+		}
+	} else if (input.ExpireDateFrom != nil) {
+		fromDate, err1 := FormatDate(*input.ExpireDateFrom, false, offset)
+
+		if err1 == nil {
+			filter["expireDate"] = map[string]interface{}{
+				"$gte": fromDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err1)
+		}
+	} else if (input.ExpireDateTo != nil) {
+		toDate, err2 := FormatDate(*input.ExpireDateTo, true, offset)
+
+		if err2 == nil {
+			filter["expireDate"] = map[string]interface{}{
+				"$lte": toDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err2)
 		}
 	}
 
@@ -113,6 +162,8 @@ func GapFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, 
 		return nil, err
 	}
 
+	fmt.Printf("Query String for Fetching Results: %s\n", queryString) // Debugging
+
 	queryResults, _, err := ctx.GetStub().GetQueryResultWithPagination(string(queryString), int32(input.Limit), "")
 	if err != nil {
 		return nil, err
@@ -137,4 +188,5 @@ func GapFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, 
 
 	return assets, nil
 }
+
 

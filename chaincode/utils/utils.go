@@ -74,6 +74,8 @@ func BuildQueryString(filter map[string]interface{}) (string, error) {
 }
 
 func CountTotalResults(ctx contractapi.TransactionContextInterface, queryString string) (int, error) {
+	fmt.Printf("Query String for Counting Results: %s\n", queryString) 
+
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
 		return 0, err

@@ -14,6 +14,7 @@ type TransactionNectecStaff struct {
 type FilterGetAllNectecStaff struct {
 	Skip  int `json:"skip"`
 	Limit int `json:"limit"`
+	Search *string `json:"search"`
 }
 
 type NectecStaffTransactionResponse struct {

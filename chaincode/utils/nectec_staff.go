@@ -35,6 +35,12 @@ func NectecStaffFetchResultsWithPagination(ctx contractapi.TransactionContextInt
         total++
     }
 
+	if input.Search != nil && *input.Search != "" {
+		selector["id"] = map[string]interface{}{
+			"$regex": input.Search,
+		}
+	}
+
 	if input.Skip > 0 {
         selector["skip"] = input.Skip
     }

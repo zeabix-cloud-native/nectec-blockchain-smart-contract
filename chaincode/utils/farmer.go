@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
@@ -12,17 +13,31 @@ func FarmerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
 
 	filter["docType"] = "farmer"
 
-	selector := map[string]interface{}{
-		"selector": filter,
-			"sort": []map[string]string{
-			{"createdAt": "desc"},
-		},
-        "use_index": []string{
-            "_design/index-CreatedAt",
-            "index-CreatedAt",
-        },
+	if input.Search != "" {
+		filter["$or"] = []map[string]interface{}{
+			{
+				"farmerGaps": map[string]interface{}{
+					"$elemMatch": map[string]interface{}{
+						"certId": input.Search,
+					},
+				},
+			},
+			{
+				"id": input.Search,
+			},
+		}
 	}
 
+	selector := map[string]interface{}{
+		"selector": filter,
+		"sort": []map[string]string{
+			{"createdAt": "desc"},
+		},
+		"use_index": []string{
+			"_design/index-CreatedAt",
+			"index-CreatedAt",
+		},
+	}
 
 	if input.Skip > 0 {
 		selector["skip"] = input.Skip
@@ -30,10 +45,12 @@ func FarmerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
 	if input.Limit > 0 {
 		selector["limit"] = input.Limit
 	}
-	
+
 	getString, err := json.Marshal(selector)
 	if err != nil {
-		return nil, err
+		fmt.Printf("Error marshalling filter to JSON: %v\n", err)
+	} else {
+		fmt.Printf("farmer filter: %s\n", getString)
 	}
 
 	queryFarmer, _, err := ctx.GetStub().GetQueryResultWithPagination(string(getString), int32(input.Limit), "")
@@ -54,10 +71,11 @@ func FarmerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
 		if err != nil {
 			return nil, err
 		}
-		
+
+		// Ensure FarmerGaps is not nil
 		if dataF.FarmerGaps == nil {
-		dataF.FarmerGaps = []models.FarmerGap{}
-	}
+			dataF.FarmerGaps = []models.FarmerGap{}
+		}
 
 		dataFarmers = append(dataFarmers, &dataF)
 	}

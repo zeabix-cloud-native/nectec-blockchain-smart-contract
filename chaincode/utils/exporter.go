@@ -27,12 +27,32 @@ func ExporterSetFilter(input *models.ExporterFilterGetAll) map[string]interface{
 		toDate, err2 := FormatDate(*input.CreatedAtTo, true, offset)
 
 		if err1 == nil && err2 == nil {
-			filter["createdAt"] = map[string]interface{}{
+			filter["plantTypeDetail.createdAt"] = map[string]interface{}{
 				"$gte": fromDate,
 				"$lte": toDate,
 			}
 		} else {
 			fmt.Printf("Error formatting issue dates: %v, %v\n", err1, err2)
+		}
+	} else if (input.CreatedAtFrom != nil) {
+		fromDate, err1 := FormatDate(*input.CreatedAtFrom, false, offset)
+
+		if err1 == nil {
+			filter["plantTypeDetail.createdAt"] = map[string]interface{}{
+				"$gte": fromDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err1)
+		}
+	} else if (input.CreatedAtTo != nil) {
+		toDate, err2 := FormatDate(*input.CreatedAtTo, true, offset)
+
+		if err2 == nil {
+			filter["plantTypeDetail.createdAt"] = map[string]interface{}{
+				"$lte": toDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err2)
 		}
 	}
 
@@ -41,12 +61,32 @@ func ExporterSetFilter(input *models.ExporterFilterGetAll) map[string]interface{
 		toDate, err2 := FormatDate(*input.ExpireDateTo, true, offset)
 
 		if err1 == nil && err2 == nil {
-			filter["expiredDate"] = map[string]interface{}{
+			filter["plantTypeDetail.expiredDate"] = map[string]interface{}{
 				"$gte": fromDate,
 				"$lte": toDate,
 			}
 		} else {
-			fmt.Printf("Error formatting expire dates: %v, %v\n", err1, err2)
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err1, err2)
+		}
+	} else if (input.ExpireDateFrom != nil) {
+		fromDate, err1 := FormatDate(*input.ExpireDateFrom, false, offset)
+
+		if err1 == nil {
+			filter["plantTypeDetail.expiredDate"] = map[string]interface{}{
+				"$gte": fromDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err1)
+		}
+	} else if (input.ExpireDateTo != nil) {
+		toDate, err2 := FormatDate(*input.ExpireDateTo, true, offset)
+
+		if err2 == nil {
+			filter["plantTypeDetail.expiredDate"] = map[string]interface{}{
+				"$lte": toDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err2)
 		}
 	}
 
@@ -84,6 +124,8 @@ func ExporterFetchResultsWithPagination(ctx contractapi.TransactionContextInterf
     if err != nil {
         return nil, 0, err
     }
+
+    fmt.Printf("Query String for Fetching Results: %s\n", getStringE) // Debugging
 
     // Fetch total count of the results
     resultsIterator, err := ctx.GetStub().GetQueryResult(string(getStringE))

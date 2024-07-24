@@ -225,7 +225,6 @@ func (s *SmartContract) GetGapByCertID(ctx contractapi.TransactionContextInterfa
 }
 
 func (s *SmartContract) GetAllGAP(ctx contractapi.TransactionContextInterface, args string) (*models.GetAllGapResponse, error) {
-
 	entityGetAllGap := models.FilterGetAllGap{}
 	interfaceGap, err := utils.Unmarshal(args, entityGetAllGap)
 	if err != nil {
@@ -234,12 +233,42 @@ func (s *SmartContract) GetAllGAP(ctx contractapi.TransactionContextInterface, a
 	inputGap := interfaceGap.(*models.FilterGetAllGap)
 	filterGap := utils.GapSetFilter(inputGap)
 
-	queryStringGap, err := utils.BuildQueryString(filterGap)
+	// Build query string
+	selector := map[string]interface{}{
+		"selector": filterGap,
+	}
+
+	if inputGap.CertID != nil && *inputGap.CertID != "" {
+		searchTerm := *inputGap.CertID
+		selector["selector"] = map[string]interface{}{
+			"$and": []map[string]interface{}{
+				filterGap,
+				{
+					"$or": []map[string]interface{}{
+						{"certId": map[string]interface{}{"$regex": searchTerm}},
+						{"displayCertId": map[string]interface{}{"$regex": searchTerm}},
+					},
+				},
+			},
+		}
+	}
+
+	queryStringGap, err := json.Marshal(selector)
 	if err != nil {
 		return nil, err
 	}
 
-	total, err := utils.CountTotalResults(ctx, queryStringGap)
+	// Debugging: print the query string to ensure it matches the expected filter criteria
+	fmt.Printf("Query String for Fetching and Counting: %s\n", queryStringGap)
+
+	// Count total results matching the query criteria
+	total, err := utils.CountTotalResults(ctx, string(queryStringGap))
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch paginated results
+	assets, err := utils.GapFetchResultsWithPagination(ctx, inputGap, filterGap)
 	if err != nil {
 		return nil, err
 	}
@@ -248,21 +277,16 @@ func (s *SmartContract) GetAllGAP(ctx contractapi.TransactionContextInterface, a
 		return nil, fmt.Errorf(utils.SKIPOVER)
 	}
 
-	assets, err := utils.GapFetchResultsWithPagination(ctx, inputGap, filterGap)
-	if err != nil {
-		return nil, err
-	}
-
 	gapTotals := make(map[string]float32)
 	for _, asset := range assets {
-        packingDocs, err := FetchPackingDocsByGap(ctx, asset.CertID)
-        if err != nil {
-            return nil, err
-        }
+		packingDocs, err := FetchPackingDocsByGap(ctx, asset.CertID)
+		if err != nil {
+			return nil, err
+		}
 
-        for _, doc := range packingDocs {
-            gapTotals[asset.CertID] += doc.FinalWeight
-        }
+		for _, doc := range packingDocs {
+			gapTotals[asset.CertID] += doc.FinalWeight
+		}
 
 		// Initialize isCanDelete to true
 		asset.IsCanDelete = true
@@ -285,26 +309,17 @@ func (s *SmartContract) GetAllGAP(ctx contractapi.TransactionContextInterface, a
 		if salesResultsIterator.HasNext() {
 			asset.IsCanDelete = false
 		}
-    }
+	}
 
-	sort.Slice(assets, func(i, j int) bool {
-        t1, err1 := time.Parse(time.RFC3339, assets[i].CreatedAt)
-        t2, err2 := time.Parse(time.RFC3339, assets[j].CreatedAt)
-        if err1 != nil || err2 != nil {
-            fmt.Println("Error parsing time:", err1, err2)
-            return false
-        }
-        return t1.After(t2)
-    })
 	if len(assets) == 0 {
 		assets = []*models.GapTransactionResponse{}
 	}
 
 	for _, asset := range assets {
-        if total, ok := gapTotals[asset.CertID]; ok {
-            asset.TotalSold = total
-        }
-    }
+		if total, ok := gapTotals[asset.CertID]; ok {
+			asset.TotalSold = total
+		}
+	}
 
 	return &models.GetAllGapResponse{
 		Data:  "All Gap",
@@ -312,6 +327,8 @@ func (s *SmartContract) GetAllGAP(ctx contractapi.TransactionContextInterface, a
 		Total: total,
 	}, nil
 }
+
+
 
 func FetchPackingDocsByGap(ctx contractapi.TransactionContextInterface, gap string) ([]*models.PackingTransactionResponse, error) {
     filter := map[string]interface{}{

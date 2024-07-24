@@ -126,6 +126,8 @@ func (s *SmartContract) UpdatePlantType(ctx contractapi.TransactionContextInterf
 
 func (s *SmartContract) QueryPlanTypeWithPagination(ctx contractapi.TransactionContextInterface, filterParams string) (*models.PlantTypeResponse, error) {
 	var filters models.PlanTypeFilterParams
+    const offset = 7 // UTC+7
+
 	err := json.Unmarshal([]byte(filterParams), &filters)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal filter parameters: %v", err)
@@ -141,6 +143,74 @@ func (s *SmartContract) QueryPlanTypeWithPagination(ctx contractapi.TransactionC
 
 	if filters.PlantType != "" {
 		selector["plantType"] = filters.PlantType
+	}
+
+	if filters.CreatedAtFrom != nil && filters.CreatedAtTo != nil {
+		fromDate, err1 := utils.FormatDate(*filters.CreatedAtFrom, false, offset)
+		toDate, err2 := utils.FormatDate(*filters.CreatedAtTo, true, offset)
+
+		if err1 == nil && err2 == nil {
+			selector["createdAt"] = map[string]interface{}{
+				"$gte": fromDate,
+				"$lte": toDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err1, err2)
+		}
+	} else if (filters.CreatedAtFrom != nil) {
+		fromDate, err1 := utils.FormatDate(*filters.CreatedAtFrom, false, offset)
+
+		if err1 == nil {
+			selector["createdAt"] = map[string]interface{}{
+				"$gte": fromDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err1)
+		}
+	} else if (filters.CreatedAtTo != nil) {
+		toDate, err2 := utils.FormatDate(*filters.CreatedAtTo, true, offset)
+
+		if err2 == nil {
+			selector["createdAt"] = map[string]interface{}{
+				"$lte": toDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err2)
+		}
+	}
+
+	if filters.ExpireDateFrom != nil && filters.ExpireDateTo != nil {
+		fromDate, err1 := utils.FormatDate(*filters.ExpireDateFrom, false, offset)
+		toDate, err2 := utils.FormatDate(*filters.ExpireDateTo, true, offset)
+
+		if err1 == nil && err2 == nil {
+			selector["expiredDate"] = map[string]interface{}{
+				"$gte": fromDate,
+				"$lte": toDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err1, err2)
+		}
+	} else if (filters.ExpireDateFrom != nil) {
+		fromDate, err1 := utils.FormatDate(*filters.ExpireDateFrom, false, offset)
+
+		if err1 == nil {
+			selector["expiredDate"] = map[string]interface{}{
+				"$gte": fromDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err1)
+		}
+	} else if (filters.ExpireDateTo != nil) {
+		toDate, err2 := utils.FormatDate(*filters.ExpireDateTo, true, offset)
+
+		if err2 == nil {
+			selector["expiredDate"] = map[string]interface{}{
+				"$lte": toDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err2)
+		}
 	}
 
 	// Create query string for counting total records

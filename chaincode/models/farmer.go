@@ -17,6 +17,7 @@ type FilterGetAllFarmer struct {
 	Skip  int `json:"skip"`
 	Limit int `json:"limit"`
 	FarmerGap string `json:"farmerGap"`
+	Search string `json:"search"`
 }
 
 type FarmerGap struct {
