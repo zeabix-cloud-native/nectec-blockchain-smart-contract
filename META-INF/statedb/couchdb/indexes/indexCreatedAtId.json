@@ -1,0 +1,8 @@
+{
+  "index": {
+    "fields": [{ "docType": "asc" }, { "createdAt": "desc" }]
+  },
+  "ddoc": "index-CreatedAtId",
+  "name": "index-CreatedAtId",
+  "type": "json"
+}

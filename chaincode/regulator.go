@@ -115,18 +115,22 @@ func (s *SmartContract) QueryRegulatorWithPagination(ctx contractapi.Transaction
 	if filters.UserId != "" {
 		selector["userId"] = filters.UserId
 	}
-	
-	countQueryString, err := json.Marshal(map[string]interface{}{
+
+	// Build the count query
+	countQuery := map[string]interface{}{
 		"selector": selector,
 		"use_index": []string{
-            "_design/index-CreatedAt",
-            "index-CreatedAt",
-        },
-	})
+			"_design/index-CreatedAtId",
+			"index-CreatedAtId",
+		},
+	}
 
+	countQueryString, err := json.Marshal(countQuery)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal count query string: %v", err)
 	}
+
+	fmt.Printf("Count Query String: %s\n", countQueryString) // Debugging
 
 	// Execute the count query
 	countResultsIterator, err := ctx.GetStub().GetQueryResult(string(countQueryString))
@@ -153,31 +157,26 @@ func (s *SmartContract) QueryRegulatorWithPagination(ctx contractapi.Transaction
 		}, nil
 	}
 
-	// Apply pagination
-	if filters.Skip > 0 {
-		selector["skip"] = filters.Skip
-	}
-	if filters.Limit > 0 {
-		selector["limit"] = filters.Limit
-	}
-
-	// Create query string for paginated results
-	queryString, err := json.Marshal(map[string]interface{}{
+	// Create the query string for paginated results
+	paginationQuery := map[string]interface{}{
 		"selector": selector,
 		"sort": []map[string]string{
 			{"createdAt": "desc"},
 		},
-        "use_index": []string{
-            "_design/index-CreatedAt",
-            "index-CreatedAt",
-        },
-	})
+		"use_index": []string{
+			"_design/index-CreatedAtId",
+			"index-CreatedAtId",
+		},
+		"limit": filters.Limit,
+		"skip":  filters.Skip,
+	}
 
-	fmt.Printf("Packaging query %v", queryString)
-
+	queryString, err := json.Marshal(paginationQuery)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal query string: %v", err)
 	}
+
+	fmt.Printf("Pagination Query String: %s\n", queryString) // Debugging
 
 	// Execute the paginated query
 	resultsIterator, _, err := ctx.GetStub().GetQueryResultWithPagination(string(queryString), int32(filters.Limit), "")
@@ -201,11 +200,16 @@ func (s *SmartContract) QueryRegulatorWithPagination(ctx contractapi.Transaction
 		assets = append(assets, &asset)
 	}
 
+	if assets == nil {
+		assets = []*models.TransactionRegulator{}
+	}
+
 	return &models.RegulatorGetAllResponse{
 		Obj:  assets,
 		Total: totalCount,
 	}, nil
 }
+
 
 func (s *SmartContract) DeleteRegulator(ctx contractapi.TransactionContextInterface, id string) error {
 	assetRegulator, err := s.ReadRegulatorProfile(ctx, id)
