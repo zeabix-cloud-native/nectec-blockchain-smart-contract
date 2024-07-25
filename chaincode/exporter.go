@@ -214,6 +214,24 @@ func (s *SmartContract) DeleteExporter(ctx contractapi.TransactionContextInterfa
 	return ctx.GetStub().DelState(assetE.Id)
 }
 
+func (s *SmartContract) DeleteExporterFromRegulator(ctx contractapi.TransactionContextInterface, id string) error {
+
+	assetE, err := s.ReadExporter(ctx, id)
+	utils.HandleError(err)
+
+	ctx.GetStub().DelState(assetE.Id)
+
+	// Marshal event payloads to JSON
+	eventPayloadJSON, err := json.Marshal(assetE)
+	if err != nil {
+		return fmt.Errorf("failed to marshal event payload JSON: %v", err)
+	}
+
+	ctx.GetStub().SetEvent("deleteExporterEvent", eventPayloadJSON)
+
+	return nil
+}
+
 func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterface, id string, newOwner string) error {
 
 	assetE, err := s.ReadExporter(ctx, id)
