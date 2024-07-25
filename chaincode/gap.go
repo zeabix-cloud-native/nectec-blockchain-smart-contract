@@ -113,7 +113,8 @@ func (s *SmartContract) ReadGap(ctx contractapi.TransactionContextInterface, id 
 		"selector": {
 			"docType": "packing",
 			"gap": "%s"
-		}
+		},
+		"use_index": ["_design/index-DocTypeGap", "index-DocTypeGap"]
 	}`, asset.CertID)
 
 	fmt.Printf("salesQueryString %v", salesQueryString)

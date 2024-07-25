@@ -46,3 +46,8 @@ type ExporterGetAllResponse struct {
 	Obj   []*ExporterTransactionResponse `json:"obj"`
 	Total int                   `json:"total"`
 }
+
+type ExporterForImportResponse struct {
+	Duplicates   []*PlantTypeModel `json:"duplicates"`
+	NewEntries   []*PlantTypeModel `json:"newEntries"`
+}

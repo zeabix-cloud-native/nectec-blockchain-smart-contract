@@ -1,0 +1,8 @@
+{
+  "index": {
+    "fields": ["docType", "gap"]
+  },
+  "ddoc": "index-DocTypeGap",
+  "name": "index-DocTypeGap",
+  "type": "json"
+}

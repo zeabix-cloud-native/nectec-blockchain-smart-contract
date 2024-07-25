@@ -323,6 +323,61 @@ func (s *SmartContract) GetExporterByExporterId(ctx contractapi.TransactionConte
     return exporter, nil
 }
 
+func (s *SmartContract) GetAllExporterImportData(ctx contractapi.TransactionContextInterface, args string) (*models.ExporterForImportResponse, error) {
+	var inputs []*models.PlantTypeModel 
+
+	errInputPlantType := json.Unmarshal([]byte(args), &inputs)
+	if errInputPlantType != nil {
+		return nil, fmt.Errorf("failed to unmarshal input arguments: %v", errInputPlantType)
+	}
+
+	var duplicates []*models.PlantTypeModel
+	var newEntries []*models.PlantTypeModel
+
+	for _, input := range inputs {
+		exists, err := s.checkIfExists(ctx, input.PlantType)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check existence of input ID %s: %v", input.PlantType, err)
+		}
+
+		if exists {
+			duplicates = append(duplicates, input)
+		} else {
+			newEntries = append(newEntries, input)
+		}
+	}
+
+	// Ensure slices are initialized to empty slices if they are nil
+	if duplicates == nil {
+		duplicates = []*models.PlantTypeModel{}
+	}
+	if newEntries == nil {
+		newEntries = []*models.PlantTypeModel{}
+	}
+
+	response := &models.ExporterForImportResponse{
+		Duplicates: duplicates,
+		NewEntries: newEntries,
+	}
+
+	return response, nil
+}
+
+func (s *SmartContract) checkIfExists(ctx contractapi.TransactionContextInterface, plantType string) (bool, error) {
+	queryString := fmt.Sprintf(`{
+		"selector": {
+			"plantType": "%s"
+		}
+	}`, plantType)
+
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+	if err != nil {
+		return false, fmt.Errorf("failed to execute rich query: %v", err)
+	}
+	defer resultsIterator.Close()
+
+	return resultsIterator.HasNext(), nil
+}
 
 func (s *SmartContract) GetAllExporter(ctx contractapi.TransactionContextInterface, args string) (*models.ExporterGetAllResponse, error) {
 	entityGetAll := models.ExporterFilterGetAll{}
