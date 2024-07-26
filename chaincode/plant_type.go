@@ -324,3 +324,110 @@ func (s *SmartContract) GetPlantTypeByPlantType(ctx contractapi.TransactionConte
 
 	return asset, nil
 }
+
+func (s *SmartContract) DeletePlantType(ctx contractapi.TransactionContextInterface, id string) error {
+	plantType, err := s.ReadPlanType(ctx, id)
+	utils.HandleError(err)
+
+	return ctx.GetStub().DelState(plantType.Id)
+}
+
+func (s *SmartContract) UpdateMultiplePlantType(
+	ctx contractapi.TransactionContextInterface,
+	args string,
+) error {
+	var inputs []models.PlantTypeModel
+
+	errInputGap := json.Unmarshal([]byte(args), &inputs)
+	utils.HandleError(errInputGap)
+	
+	for _, input := range inputs {
+		assetJSON, err := ctx.GetStub().GetState(input.Id)
+		if err != nil {
+			return fmt.Errorf("failed to read from world state: %v", err)
+		}
+		if assetJSON == nil {
+			return fmt.Errorf("asset with ID %s does not exist", input.Id)
+		}
+		
+		var existingAsset models.PlantTypeModel
+		err = json.Unmarshal(assetJSON, &existingAsset)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal existing asset: %v", err)
+		}
+
+		existingAsset.Name =   input.Name
+		existingAsset.Address =   input.Address
+		existingAsset.Province =   input.Province
+		existingAsset.District =    input.District
+		existingAsset.PostCode =    input.PostCode
+		existingAsset.Email =    input.Email
+		existingAsset.IssueDate =   input.IssueDate
+		existingAsset.ExpiredDate =   input.ExpiredDate
+		existingAsset.PlantType =   input.PlantType
+		existingAsset.Province =    input.Province
+		existingAsset.UpdatedAt = 	input.UpdatedAt
+		
+		updatedAssetJSON, err := json.Marshal(existingAsset)
+		if err != nil {
+			return fmt.Errorf("failed to marshal updated asset: %v", err)
+		}
+		
+		err = ctx.GetStub().PutState(input.Id, updatedAssetJSON)
+		if err != nil {
+			return fmt.Errorf("failed to update asset in world state: %v", err)
+		}
+		
+		fmt.Printf("PlantType Asset %s updated successfully\n", input.Id)
+	}
+	
+	return nil
+}
+
+func (s *SmartContract) GetPlantTypeList(ctx contractapi.TransactionContextInterface, args string) ([]models.PlantTypeModel, error) {
+	var inputs []string
+
+	errInputPlantType := json.Unmarshal([]byte(args), &inputs)
+	if errInputPlantType != nil {
+		return nil, fmt.Errorf("failed to unmarshal input arguments: %v", errInputPlantType)
+	}
+
+	var plantTypes []models.PlantTypeModel
+
+	for _, plantType := range inputs {
+		queryString := fmt.Sprintf(`{
+			"selector": {
+				"docType": "plantType",
+				"plantType": "%s"
+			}
+		}`, plantType)
+	
+		resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute rich query: %v", err)
+		}
+		defer resultsIterator.Close()
+	
+		for resultsIterator.HasNext() {
+			queryResponse, err := resultsIterator.Next()
+			if err != nil {
+				return nil, fmt.Errorf("failed to iterate results: %v", err)
+			}
+	
+			var plantTypeModel models.PlantTypeModel
+			err = json.Unmarshal(queryResponse.Value, &plantTypeModel)
+			if err != nil {
+				return nil, fmt.Errorf("failed to unmarshal query response: %v", err)
+			}
+	
+			plantTypes = append(plantTypes, plantTypeModel)
+		}
+	}
+
+	// Ensure slices are initialized to empty slices if they are nil
+	if plantTypes == nil {
+		plantTypes = []models.PlantTypeModel{}
+	}
+	
+	return plantTypes, nil
+}

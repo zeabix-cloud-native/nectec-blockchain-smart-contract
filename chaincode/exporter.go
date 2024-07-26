@@ -341,6 +341,50 @@ func (s *SmartContract) GetExporterByExporterId(ctx contractapi.TransactionConte
     return exporter, nil
 }
 
+func (s *SmartContract) UpdateMultipleExporter(
+	ctx contractapi.TransactionContextInterface,
+	args string,
+) error {
+	var inputs []models.TransactionExporter
+
+	errInputGap := json.Unmarshal([]byte(args), &inputs)
+	utils.HandleError(errInputGap)
+	
+	for _, input := range inputs {
+		assetJSON, err := ctx.GetStub().GetState(input.Id)
+		if err != nil {
+			return fmt.Errorf("failed to read from world state: %v", err)
+		}
+		if assetJSON == nil {
+			return fmt.Errorf("asset with ID %s does not exist", input.Id)
+		}
+		
+		var existingAsset models.TransactionExporter
+		err = json.Unmarshal(assetJSON, &existingAsset)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal existing asset: %v", err)
+		}
+
+		existingAsset.PlantTypeDetail = input.PlantTypeDetail
+		existingAsset.PlantType =   input.PlantType
+		existingAsset.UpdatedAt = 	input.UpdatedAt
+		
+		updatedAssetJSON, err := json.Marshal(existingAsset)
+		if err != nil {
+			return fmt.Errorf("failed to marshal updated asset: %v", err)
+		}
+		
+		err = ctx.GetStub().PutState(input.Id, updatedAssetJSON)
+		if err != nil {
+			return fmt.Errorf("failed to update asset in world state: %v", err)
+		}
+		
+		fmt.Printf("PlantType Asset %s updated successfully\n", input.Id)
+	}
+	
+	return nil
+}
+
 func (s *SmartContract) GetAllExporterImportData(ctx contractapi.TransactionContextInterface, args string) (*models.ExporterForImportResponse, error) {
 	var inputs []*models.PlantTypeModel 
 
@@ -384,6 +428,7 @@ func (s *SmartContract) GetAllExporterImportData(ctx contractapi.TransactionCont
 func (s *SmartContract) checkIfExists(ctx contractapi.TransactionContextInterface, plantType string) (bool, error) {
 	queryString := fmt.Sprintf(`{
 		"selector": {
+			"docType": "plantType",
 			"plantType": "%s"
 		}
 	}`, plantType)
@@ -445,6 +490,54 @@ func (s *SmartContract) GetAllExporter(ctx contractapi.TransactionContextInterfa
 		Obj:   arrExporter,
 		Total: total,
 	}, nil
+}
+
+func (s *SmartContract) GetExporterList(ctx contractapi.TransactionContextInterface, args string) ([]models.TransactionExporter, error) {
+	var inputs []string
+
+	errInputPlantType := json.Unmarshal([]byte(args), &inputs)
+	if errInputPlantType != nil {
+		return nil, fmt.Errorf("failed to unmarshal input arguments: %v", errInputPlantType)
+	}
+
+	var exporters []models.TransactionExporter
+
+	for _, exporterId := range inputs {
+		queryString := fmt.Sprintf(`{
+			"selector": {
+				"docType": "exporter",
+				"certId": "%s"
+			}
+		}`, exporterId)
+	
+		resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute rich query: %v", err)
+		}
+		defer resultsIterator.Close()
+	
+		for resultsIterator.HasNext() {
+			queryResponse, err := resultsIterator.Next()
+			if err != nil {
+				return nil, fmt.Errorf("failed to iterate results: %v", err)
+			}
+	
+			var exporterModel models.TransactionExporter
+			err = json.Unmarshal(queryResponse.Value, &exporterModel)
+			if err != nil {
+				return nil, fmt.Errorf("failed to unmarshal query response: %v", err)
+			}
+	
+			exporters = append(exporters, exporterModel)
+		}
+	}
+
+	// Ensure slices are initialized to empty slices if they are nil
+	if exporters == nil {
+		exporters = []models.TransactionExporter{}
+	}
+	
+	return exporters, nil
 }
 
 func FetchFormEByExporterId(ctx contractapi.TransactionContextInterface, id string) ([]*models.TransactionFormE, error) {
