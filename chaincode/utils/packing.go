@@ -32,6 +32,10 @@ func PackingSetFilter(input *models.FilterGetAllPacking) map[string]interface{} 
 	if (input.FarmerID != nil) {
 		filter["farmerId"] = *input.FarmerID
 	}
+
+	if (input.PackerId != nil) {
+		filter["packerId"] = *input.PackerId
+	}
 	
 	if input.Province != nil {
 		filter["province"] = *input.Province
