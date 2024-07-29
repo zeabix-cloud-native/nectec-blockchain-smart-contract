@@ -13,8 +13,6 @@ import (
 func PackingSetFilter(input *models.FilterGetAllPacking) map[string]interface{} {
 	var filter = map[string]interface{}{}
 
-	filter["docType"] = "packing"
-
 	const RegexKey = "$regex"
 
 	if input.Gap != nil {
@@ -56,12 +54,25 @@ func PackingSetFilter(input *models.FilterGetAllPacking) map[string]interface{} 
 		} else {
 			fmt.Printf("Error formatting issue dates: %v, %v\n", err1, err2)
 		}
-	}
+	} else if (input.StartDate != nil) {
+		fromDate, err1 := FormatDate(*input.StartDate, false, offset)
 
-	if input.ForecastWeightFrom != nil && input.ForecastWeightTo != nil {
-		filter["forecastWeight"] = map[string]interface{}{
-			"$gte": *input.ForecastWeightFrom,
-			"$lte": *input.ForecastWeightTo,
+		if err1 == nil {
+			filter["createdAt"] = map[string]interface{}{
+				"$gte": fromDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err1)
+		}
+	} else if (input.EndDate != nil) {
+		toDate, err2 := FormatDate(*input.EndDate, true, offset)
+
+		if err2 == nil {
+			filter["createdAt"] = map[string]interface{}{
+				"$lte": toDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err2)
 		}
 	}
 
@@ -87,21 +98,42 @@ func PackingSetFilter(input *models.FilterGetAllPacking) map[string]interface{} 
 			}
 		}
 	}
+
+	if input.ForecastWeightFrom != nil && input.ForecastWeightTo != nil {
+		filter["forecastWeight"] = map[string]interface{}{
+			"$gte": *input.ForecastWeightFrom,
+			"$lte": *input.ForecastWeightTo,
+		}
+	} else if (input.ForecastWeightFrom != nil) {
+		filter["forecastWeight"] = map[string]interface{}{
+			"$gte": *input.ForecastWeightFrom,
+		}
+	} else if (input.ForecastWeightTo != nil) {
+		filter["forecastWeight"] = map[string]interface{}{
+			"$gte": 0,
+			"$lte": *input.ForecastWeightTo,
+		}
+	}
 	
 	filter["docType"] = "packing"
+
+	filterJSON, err := json.Marshal(filter)
+	if err != nil {
+		fmt.Printf("Error marshalling filter to JSON: %v\n", err)
+	} else {
+		fmt.Printf("packing filter: %s\n", filterJSON)
+	}
 
 	return filter
 }
 
-func PackingFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, input *models.FilterGetAllPacking, filter map[string]interface{}) ([]*models.PackingTransactionResponse, error) {
+func PackingFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, input *models.FilterGetAllPacking, filter map[string]interface{}) ([]*models.PackingTransactionResponse, map[string]interface{}, error) {
 	search, searchExists := filter["search"]
-
-	filter["docType"] = "packing"
 
 	if searchExists {
 		delete(filter, "search")
 	}
-	
+
 	// Initialize the base selector
 	selector := map[string]interface{}{
 		"selector": filter,
@@ -129,14 +161,14 @@ func PackingFetchResultsWithPagination(ctx contractapi.TransactionContextInterfa
 
 	getStringPacking, err := json.Marshal(selector)
 	if err != nil {
-		return nil, err
+		return nil, selector, err
 	}
 
 	fmt.Printf("Packing %s query\n", getStringPacking)
 
 	queryPacking, _, err := ctx.GetStub().GetQueryResultWithPagination(string(getStringPacking), int32(input.Limit), "")
 	if err != nil {
-		return nil, err
+		return nil, selector, err
 	}
 	defer queryPacking.Close()
 
@@ -144,17 +176,17 @@ func PackingFetchResultsWithPagination(ctx contractapi.TransactionContextInterfa
 	for queryPacking.HasNext() {
 		queryResponse, err := queryPacking.Next()
 		if err != nil {
-			return nil, err
+			return nil, selector, err
 		}
 
 		var asset models.PackingTransactionResponse
 		err = json.Unmarshal(queryResponse.Value, &asset)
 		if err != nil {
-			return nil, err
+			return nil, selector, err
 		}
 
 		dataPacking = append(dataPacking, &asset)
 	}
 
-	return dataPacking, nil
+	return dataPacking, selector, nil
 }

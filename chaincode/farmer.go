@@ -138,6 +138,20 @@ func (s *SmartContract) ReadFarmerProfile(ctx contractapi.TransactionContextInte
             return nil, err
         }
 
+		packings, err := FetchPackingDocsByGap(ctx, gap.CertID)
+		if err != nil {
+			fmt.Printf("error %v", err)
+		}
+
+		totalSold := 0
+
+		for _, packing := range packings {
+			if (packing.ProcessStatus == 2 || packing.ProcessStatus == 3) {
+				totalSold += int(packing.ActualWeight)
+			}
+		}
+
+		gap.TotalSold = totalSold
         gap.IsCanDelete = true
 
         salesQueryString := fmt.Sprintf(`{

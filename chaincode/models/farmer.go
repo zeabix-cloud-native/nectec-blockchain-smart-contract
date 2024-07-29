@@ -38,6 +38,7 @@ type FarmerGap struct {
 	Owner       string    `json:"owner"`
 	OrgName     string    `json:"orgName"`
 	IsCanDelete bool       `json:"isCanDelete"`
+	TotalSold   int       `json:"totalSold"`
 	UpdatedAt   string `json:"updatedAt"`
 	CreatedAt   string `json:"createdAt"`
 }

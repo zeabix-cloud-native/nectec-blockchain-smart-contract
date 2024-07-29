@@ -172,7 +172,6 @@ func (s *SmartContract) ReadPacking(ctx contractapi.TransactionContextInterface,
 }
 
 func (s *SmartContract) GetAllPacking(ctx contractapi.TransactionContextInterface, args string) (*models.PackingGetAllResponse, error) {
-
     entityGetAllPacking := models.FilterGetAllPacking{}
     interfacePacking, err := utils.Unmarshal(args, entityGetAllPacking)
     if err != nil {
@@ -181,23 +180,26 @@ func (s *SmartContract) GetAllPacking(ctx contractapi.TransactionContextInterfac
     inputPacking := interfacePacking.(*models.FilterGetAllPacking)
     filterPacking := utils.PackingSetFilter(inputPacking)
 
-    queryStringPacking, err := utils.BuildQueryString(filterPacking)
+    arrPacking, selector, err := utils.PackingFetchResultsWithPagination(ctx, inputPacking, filterPacking)
     if err != nil {
         return nil, err
     }
 
-    total, err := utils.CountTotalResults(ctx, queryStringPacking)
+	queryString, err := json.Marshal(selector)
+	if err != nil {
+		return nil, err
+	}
+
+	// Debugging: print the query string to ensure it matches the expected filter criteria
+	fmt.Printf("Query String for Fetching and Counting: %s\n", queryString)
+
+    total, err := utils.CountTotalResults(ctx, string(queryString))
     if err != nil {
         return nil, err
     }
 
-    if inputPacking.Skip > total {
+	if inputPacking.Skip > total {
         return nil, fmt.Errorf(utils.SKIPOVER)
-    }
-
-    arrPacking, err := utils.PackingFetchResultsWithPagination(ctx, inputPacking, filterPacking)
-    if err != nil {
-        return nil, err
     }
 
 	sort.Slice(arrPacking, func(i, j int) bool {
@@ -214,7 +216,7 @@ func (s *SmartContract) GetAllPacking(ctx contractapi.TransactionContextInterfac
         arrPacking = []*models.PackingTransactionResponse{}
     }
 
-    CalculateTotalSold(arrPacking)
+    // CalculateTotalSold(arrPacking)
 
     return &models.PackingGetAllResponse{
         Data:  "All Packing",
@@ -224,23 +226,23 @@ func (s *SmartContract) GetAllPacking(ctx contractapi.TransactionContextInterfac
 }
 
 // Utility function to calculate totalSold
-func CalculateTotalSold(documents []*models.PackingTransactionResponse) {
-    gapTotals := make(map[string]float32)
+// func CalculateTotalSold(documents []*models.PackingTransactionResponse) {
+//     gapTotals := make(map[string]float32)
     
-    // Calculate total sold for each gap
-    for _, doc := range documents {
-        if doc.Gap != "" {
-            gapTotals[doc.Gap] += doc.FinalWeight
-        }
-    }
+//     // Calculate total sold for each gap
+//     for _, doc := range documents {
+//         if doc.Gap != "" {
+//             gapTotals[doc.Gap] += doc.FinalWeight
+//         }
+//     }
     
-    // Update each document with the total sold value
-    for _, doc := range documents {
-        if doc.Gap != "" {
-            doc.TotalSold = gapTotals[doc.Gap]
-        }
-    }
-}
+//     // Update each document with the total sold value
+//     for _, doc := range documents {
+//         if doc.Gap != "" {
+//             doc.TotalSold = gapTotals[doc.Gap]
+//         }
+//     }
+// }
 
 func CalculateTotalPackingSold(documents []*models.TransactionPacking) {
 	packingTotals := make(map[string]float32)
@@ -254,6 +256,23 @@ func CalculateTotalPackingSold(documents []*models.TransactionPacking) {
 			doc.TotalSold = packingTotals[doc.Gap]
 		}
 	}
+}
+
+func (s *SmartContract) CalculateTotalSold(ctx contractapi.TransactionContextInterface, gapId string) (int, error) {
+	packings, err := FetchPackingDocsByGap(ctx, gapId)
+	if err != nil {
+		return 0, err
+	}
+
+	totalSold := 0
+
+	for _, packing := range packings {
+		if (packing.ProcessStatus == 2 || packing.ProcessStatus == 3) {
+			totalSold += int(packing.ActualWeight)
+		}
+	}
+
+	return totalSold, nil
 }
 
 func (s *SmartContract) FilterPacking(ctx contractapi.TransactionContextInterface, key, value string) ([]*models.TransactionPacking, error) {
