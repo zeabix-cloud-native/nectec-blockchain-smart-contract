@@ -127,39 +127,27 @@ func PackingSetFilter(input *models.FilterGetAllPacking) map[string]interface{} 
 	return filter
 }
 
-func PackingFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, input *models.FilterGetAllPacking, filter map[string]interface{}) ([]*models.PackingTransactionResponse, map[string]interface{}, error) {
-	search, searchExists := filter["search"]
-
-	if searchExists {
-		delete(filter, "search")
-	}
-
-	// Initialize the base selector
-	selector := map[string]interface{}{
-		"selector": filter,
-	}
-
-	if searchExists && search != "" {
-		selector["selector"] = map[string]interface{}{
-			"$and": []map[string]interface{}{
-				filter,
-				{
-					"$or": []map[string]interface{}{
-						{"gmp": map[string]interface{}{"$regex": search}},
-						{"packingHouseName": map[string]interface{}{"$regex": search}},
-						{"gap": map[string]interface{}{"$regex": search}},
-					},
-				},
-			},
-		}
-	} 
-
-	if input.Skip != 0 || input.Limit != 0 {
+func PackingFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, input *models.FilterGetAllPacking, selector map[string]interface{}) ([]*models.PackingTransactionResponse, map[string]interface{}, error) {
+	if input.Skip > 0 {
 		selector["skip"] = input.Skip
+	}
+	if input.Limit > 0 {
 		selector["limit"] = input.Limit
 	}
 
+	selector["use_index"] = []string {
+		"_design/indexFarmerCreatedAt",
+		"indexFarmerCreatedAt",
+	}
+
+	selector["sort"] = []map[string]interface{} {
+		{
+			"createdAt": "desc",
+		},
+	}
+		
 	getStringPacking, err := json.Marshal(selector)
+
 	if err != nil {
 		return nil, selector, err
 	}

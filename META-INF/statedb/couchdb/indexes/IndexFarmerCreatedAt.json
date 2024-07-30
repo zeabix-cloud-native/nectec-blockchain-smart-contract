@@ -1,0 +1,15 @@
+{
+  "index": {
+    "fields": [
+      {
+        "docType": "desc"
+      },
+      {
+        "farmerId": "desc"
+      }
+    ]
+  },
+  "ddoc": "indexFarmerCreatedAt",
+  "name": "indexFarmerCreatedAt",
+  "type": "json"
+}

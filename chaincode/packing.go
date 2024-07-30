@@ -180,10 +180,32 @@ func (s *SmartContract) GetAllPacking(ctx contractapi.TransactionContextInterfac
     inputPacking := interfacePacking.(*models.FilterGetAllPacking)
     filterPacking := utils.PackingSetFilter(inputPacking)
 
-    arrPacking, selector, err := utils.PackingFetchResultsWithPagination(ctx, inputPacking, filterPacking)
-    if err != nil {
-        return nil, err
-    }
+	// Build query string
+	selector := map[string]interface{}{
+		"selector": filterPacking,
+	}
+
+	if inputPacking.Search != nil && *inputPacking.Search != "" {
+		searchTerm := *inputPacking.Search
+
+		_, searchExists := filterPacking["search"]
+		if searchExists {
+			delete(filterPacking, "search")
+		}
+
+		selector["selector"] = map[string]interface{}{
+			"$and": []map[string]interface{}{
+				filterPacking,
+				{
+					"$or": []map[string]interface{}{
+						{"gmp": map[string]interface{}{"$regex": searchTerm}},
+						{"packingHouseName": map[string]interface{}{"$regex": searchTerm}},
+						{"gap": map[string]interface{}{"$regex": searchTerm}},
+					},
+				},
+			},
+		}
+	}
 
 	queryString, err := json.Marshal(selector)
 	if err != nil {
@@ -198,15 +220,10 @@ func (s *SmartContract) GetAllPacking(ctx contractapi.TransactionContextInterfac
         return nil, err
     }
 
-	sort.Slice(arrPacking, func(i, j int) bool {
-        t1, err1 := time.Parse(time.RFC3339, arrPacking[i].CreatedAt)
-        t2, err2 := time.Parse(time.RFC3339, arrPacking[j].CreatedAt)
-        if err1 != nil || err2 != nil {
-            fmt.Println("Error parsing time:", err1, err2)
-            return false
-        }
-        return t1.After(t2)
-    })
+    arrPacking, _, err := utils.PackingFetchResultsWithPagination(ctx, inputPacking, selector)
+    if err != nil {
+        return nil, err
+    }
 
     if len(arrPacking) == 0 {
         arrPacking = []*models.PackingTransactionResponse{}
