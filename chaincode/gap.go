@@ -274,10 +274,6 @@ func (s *SmartContract) GetAllGAP(ctx contractapi.TransactionContextInterface, a
 		return nil, err
 	}
 
-	if inputGap.Skip > total {
-		return nil, fmt.Errorf(utils.SKIPOVER)
-	}
-
 	gapTotals := make(map[string]float32)
 	for _, asset := range assets {
 		packingDocs, err := FetchPackingDocsByGap(ctx, asset.CertID)

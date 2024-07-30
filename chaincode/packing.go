@@ -198,10 +198,6 @@ func (s *SmartContract) GetAllPacking(ctx contractapi.TransactionContextInterfac
         return nil, err
     }
 
-	if inputPacking.Skip > total {
-        return nil, fmt.Errorf(utils.SKIPOVER)
-    }
-
 	sort.Slice(arrPacking, func(i, j int) bool {
         t1, err1 := time.Parse(time.RFC3339, arrPacking[i].CreatedAt)
         t2, err2 := time.Parse(time.RFC3339, arrPacking[j].CreatedAt)

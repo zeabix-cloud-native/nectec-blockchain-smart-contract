@@ -202,10 +202,6 @@ func (s *SmartContract) GetAllFarmerProfile(ctx contractapi.TransactionContextIn
 		return nil, err
 	}
 
-	if input.Skip > total {
-		return nil, fmt.Errorf(utils.SKIPOVER)
-	}
-
 	arrFarmer, err := utils.FarmerFetchResultsWithPagination(ctx, input)
 	if err != nil {
 		return nil, err
