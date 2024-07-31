@@ -35,6 +35,11 @@ func (s *SmartContract) CreatePacking(
 	clientIDPacking, err := utils.GetIdentity(ctx)
 	utils.HandleError(err)
 
+	totalSoldSnapShot, err := utils.GetTotalSoldSnapShot(ctx, input.Gap, input.ActualWeight, input.ProcessStatus)
+	if err != nil {
+		return err
+	}
+
 	asset := models.TransactionPacking{
 		Id:             input.Id,
 		OrderID:        input.OrderID,
@@ -49,6 +54,7 @@ func (s *SmartContract) CreatePacking(
 		Remark:         input.Remark,
 		CancelReason:   input.CancelReason,
 		PackerId:       input.PackerId,
+		TotalSoldSnapShot: float32(totalSoldSnapShot),
 		Province:       input.Province,
 		District:       input.District,
 		Gmp:            input.Gmp,
@@ -83,6 +89,11 @@ func (s *SmartContract) UpdatePacking(ctx contractapi.TransactionContextInterfac
 		return fmt.Errorf("failed to read asset: %v", err)
 	}
 
+	totalSoldSnapShot, err := utils.GetTotalSoldSnapShot(ctx, entityPacking.Gap, entityPacking.ActualWeight, entityPacking.ProcessStatus)
+	if err != nil {
+		return err
+	}
+
 	fmt.Println("Modify packing model")
 	asset.ForecastWeight = entityPacking.ForecastWeight
 	asset.ActualWeight = entityPacking.ActualWeight
@@ -96,6 +107,7 @@ func (s *SmartContract) UpdatePacking(ctx contractapi.TransactionContextInterfac
 	asset.CancelReason = entityPacking.CancelReason
 	asset.Gmp = entityPacking.Gmp
 	asset.Gap = entityPacking.Gap
+	asset.TotalSoldSnapShot = totalSoldSnapShot
 	asset.ProcessStatus = entityPacking.ProcessStatus
 	asset.SellingStep = entityPacking.SellingStep
 	asset.UpdatedAt = entityPacking.UpdatedAt

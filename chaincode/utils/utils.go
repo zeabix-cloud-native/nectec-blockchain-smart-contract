@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
 )
 
 const (
@@ -175,4 +176,48 @@ func StructToMap(v interface{}) (map[string]interface{}, error) {
         return nil, err
     }
     return m, nil
+}
+
+func GetTotalSoldSnapShot(ctx contractapi.TransactionContextInterface, gap string, actualWeight float32, processStatus int) (float32, error) {
+	//Query all packing to calculate current totalSold
+	queryPacking := fmt.Sprintf(`{
+		"selector": {
+			"docType": "packing",
+			"gap": "%s",
+			"processStatus": {
+				"$in": [2,3]
+			}
+		}
+	}`, gap)
+
+	totalSoldSnapShot := float32(0)
+
+	fmt.Printf("Query all packing to calculate current totalSold %v", queryPacking)
+
+	packingResultsIterator, err := ctx.GetStub().GetQueryResult(queryPacking)
+	if err != nil {
+		return 0, fmt.Errorf("failed to query packingResultsIterator sales: %v", err)
+	}
+	defer packingResultsIterator.Close()
+
+	for packingResultsIterator.HasNext() {
+		queryResponse, err := packingResultsIterator.Next()
+		if err != nil {
+			return 0, err
+		}
+
+		var packingDoc *models.TransactionPacking
+		err = json.Unmarshal(queryResponse.Value, &packingDoc)
+		if err != nil {
+			return 0, err
+		}
+
+		totalSoldSnapShot += packingDoc.ActualWeight
+	}
+
+	if (processStatus == 2) {
+		totalSoldSnapShot += actualWeight
+	}
+
+	return totalSoldSnapShot, nil
 }

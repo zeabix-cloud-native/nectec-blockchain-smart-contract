@@ -22,6 +22,7 @@ type TransactionPacking struct {
 	Province          string    `json:"province"`
 	District          string    `json:"district"`
 	TotalSold        float32   `json:"totalSold"`
+	TotalSoldSnapShot        float32   `json:"totalSoldSnapShot"`
 	OrgName        string    `json:"orgName"`
 	UpdatedAt      string `json:"updatedAt"`
 	CreatedAt      string `json:"createdAt"`
@@ -68,6 +69,7 @@ type PackingTransactionResponse struct {
 	TotalSold        float32   `json:"totalSold"`
 	SellingStep       int    `json:"sellingStep"`
 	UpdatedAt     string `json:"updatedAt"`
+	TotalSoldSnapShot        float32   `json:"totalSoldSnapShot"`
 	CreatedAt     string `json:"createdAt"`
 	Province          string    `json:"province"`
 	District          string    `json:"district"`
