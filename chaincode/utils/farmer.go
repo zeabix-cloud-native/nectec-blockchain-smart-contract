@@ -8,7 +8,7 @@ import (
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
 )
 
-func FarmerFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, input *models.FilterGetAllFarmer) ([]*models.FarmerTransactionResponse, error) {
+func FarmerFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, input *models.FilterGetAllFarmer) ([]*models.FarmerTransactionResponse, int, error) {
 	var filter = map[string]interface{}{}
 
 	filter["docType"] = "farmer"
@@ -18,7 +18,9 @@ func FarmerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
 			{
 				"farmerGaps": map[string]interface{}{
 					"$elemMatch": map[string]interface{}{
-						"certId": input.Search,
+						"displayCertId": map[string]interface{}{ 
+							"$regex": input.Search,
+						},
 					},
 				},
 			},
@@ -55,7 +57,7 @@ func FarmerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
 
 	queryFarmer, _, err := ctx.GetStub().GetQueryResultWithPagination(string(getString), int32(input.Limit), "")
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer queryFarmer.Close()
 
@@ -63,13 +65,13 @@ func FarmerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
 	for queryFarmer.HasNext() {
 		queryRes, err := queryFarmer.Next()
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 
 		var dataF models.FarmerTransactionResponse
 		err = json.Unmarshal(queryRes.Value, &dataF)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 
 		// Ensure FarmerGaps is not nil
@@ -80,5 +82,21 @@ func FarmerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
 		dataFarmers = append(dataFarmers, &dataF)
 	}
 
-	return dataFarmers, nil
+	resultsIterator, err := ctx.GetStub().GetQueryResult(string(getString))
+    if err != nil {
+        return nil, 0, err
+    }
+    defer resultsIterator.Close()
+
+
+    total := 0
+    for resultsIterator.HasNext() {
+        _, err := resultsIterator.Next()
+        if err != nil {
+            return nil, 0, err
+        }
+        total++
+    }
+
+	return dataFarmers, total, nil
 }

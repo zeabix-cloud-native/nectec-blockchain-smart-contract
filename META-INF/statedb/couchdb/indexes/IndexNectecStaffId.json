@@ -1,0 +1,15 @@
+{
+  "index": {
+    "fields": [
+      {
+        "docType": "desc"
+      },
+      {
+        "id": "desc"
+      }
+    ]
+  },
+  "ddoc": "IndexNectecStaffId",
+  "name": "IndexNectecStaffId",
+  "type": "json"
+}

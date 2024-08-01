@@ -192,17 +192,7 @@ func (s *SmartContract) GetAllFarmerProfile(ctx contractapi.TransactionContextIn
 	}
 	input := inputInterface.(*models.FilterGetAllFarmer)
 
-	queryString, err := utils.BuildQueryString(filter)
-	if err != nil {
-		return nil, err
-	}
-
-	total, err := utils.CountTotalResults(ctx, queryString)
-	if err != nil {
-		return nil, err
-	}
-
-	arrFarmer, err := utils.FarmerFetchResultsWithPagination(ctx, input)
+	arrFarmer, total, err := utils.FarmerFetchResultsWithPagination(ctx, input)
 	if err != nil {
 		return nil, err
 	}

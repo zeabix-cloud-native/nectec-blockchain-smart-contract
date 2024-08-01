@@ -190,16 +190,6 @@ func (s *SmartContract) GetAllNectecStaff(ctx contractapi.TransactionContextInte
 		return nil, err
 	}
 
-	sort.Slice(arrNstda, func(i, j int) bool {
-        t1, err1 := time.Parse(time.RFC3339, arrNstda[i].CreatedAt)
-        t2, err2 := time.Parse(time.RFC3339, arrNstda[j].CreatedAt)
-        if err1 != nil || err2 != nil {
-            fmt.Println("Error parsing time:", err1, err2)
-            return false
-        }
-        return t1.After(t2)
-    })
-
 	if len(arrNstda) == 0 {
 		arrNstda = []*models.NectecStaffTransactionResponse{}
 	}

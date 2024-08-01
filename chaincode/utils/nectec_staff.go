@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
@@ -14,31 +15,21 @@ func NectecStaffFetchResultsWithPagination(ctx contractapi.TransactionContextInt
 		"selector": filter,
 	}
 
-	getStringNectec, err := json.Marshal(selector)
-    if err != nil {
-        return nil, 0, err
-    }
-
-	resultsIterator, err := ctx.GetStub().GetQueryResult(string(getStringNectec))
-    if err != nil {
-        return nil, 0, err
-    }
-    defer resultsIterator.Close()
-
-
-    total := 0
-    for resultsIterator.HasNext() {
-        _, err := resultsIterator.Next()
-        if err != nil {
-            return nil, 0, err
-        }
-        total++
-    }
-
 	if input.Search != nil && *input.Search != "" {
-		selector["id"] = map[string]interface{}{
+		filter["certId"] = map[string]interface{}{
 			"$regex": input.Search,
 		}
+	}
+
+	selector = map[string]interface{}{
+		"selector": filter,
+		"sort": []map[string]string{
+			{"createdAt": "desc"},
+		},
+		"use_index": []string{
+			"_design/indexCreatedAtId",
+			"indexCreatedAtId",
+		},
 	}
 
 	if input.Skip > 0 {
@@ -51,6 +42,8 @@ func NectecStaffFetchResultsWithPagination(ctx contractapi.TransactionContextInt
 	getStringNstda, err := json.Marshal(selector)
 	if err != nil {
 		return nil, 0, err
+	} else {
+		fmt.Printf("staff query filter: %s\n", getStringNstda)
 	}
 
 	queryNstda, _, err := ctx.GetStub().GetQueryResultWithPagination(string(getStringNstda), int32(input.Limit), "")
@@ -74,6 +67,22 @@ func NectecStaffFetchResultsWithPagination(ctx contractapi.TransactionContextInt
 
 		dataNstda = append(dataNstda, &dataP)
 	}
+
+	resultsIterator, err := ctx.GetStub().GetQueryResult(string(getStringNstda))
+    if err != nil {
+        return nil, 0, err
+    }
+    defer resultsIterator.Close()
+
+
+    total := 0
+    for resultsIterator.HasNext() {
+        _, err := resultsIterator.Next()
+        if err != nil {
+            return nil, 0, err
+        }
+        total++
+    }
 
 	return dataNstda, total, nil
 }
