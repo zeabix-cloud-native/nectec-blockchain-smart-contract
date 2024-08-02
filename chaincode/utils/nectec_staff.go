@@ -57,7 +57,7 @@ func NectecStaffFetchResultsWithPagination(ctx contractapi.TransactionContextInt
 	} else {
 		fmt.Printf("staff query filter: %s\n", getQueryString)
 	}
-	queryNstda, _, err := ctx.GetStub().GetQueryResultWithPagination(string(getStringNstda), int32(input.Limit), "")
+	queryNstda, _, err := ctx.GetStub().GetQueryResultWithPagination(string(getQueryString), int32(input.Limit), "")
 	if err != nil {
 		return nil, 0, err
 	}
