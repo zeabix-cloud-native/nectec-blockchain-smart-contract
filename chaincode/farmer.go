@@ -47,7 +47,7 @@ func (s *SmartContract) CreateFarmerProfile(
 		Owner:     clientID,
 		OrgName:   orgName,
 		UpdatedAt: input.CreatedAt,
-		CreatedAt: input.UpdatedAt,
+		CreatedAt: input.CreatedAt,
 		DocType: models.Farmer,
 	}
 	assetJSON, err := json.Marshal(asset)

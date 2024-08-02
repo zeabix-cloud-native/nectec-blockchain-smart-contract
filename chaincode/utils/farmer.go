@@ -36,8 +36,8 @@ func FarmerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
 			{"createdAt": "desc"},
 		},
 		"use_index": []string{
-			"_design/index-CreatedAt",
-			"index-CreatedAt",
+			"_design/indexCreatedAtId",
+			"indexCreatedAtId",
 		},
 	}
 
