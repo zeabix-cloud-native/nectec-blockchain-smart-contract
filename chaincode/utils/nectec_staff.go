@@ -39,6 +39,11 @@ func NectecStaffFetchResultsWithPagination(ctx contractapi.TransactionContextInt
 		fmt.Printf("staff query filter: %s\n", getStringNstda)
 	}
 
+	total, err := CountTotalResults(ctx, string(getStringNstda))
+	if err != nil {
+		return nil, 0, err
+	}
+
 	if input.Skip > 0 {
         selector["skip"] = input.Skip
     }
@@ -79,16 +84,6 @@ func NectecStaffFetchResultsWithPagination(ctx contractapi.TransactionContextInt
         return nil, 0, err
     }
     defer resultsIterator.Close()
-
-
-    total := 0
-    for resultsIterator.HasNext() {
-        _, err := resultsIterator.Next()
-        if err != nil {
-            return nil, 0, err
-        }
-        total++
-    }
 
 	return dataNstda, total, nil
 }
