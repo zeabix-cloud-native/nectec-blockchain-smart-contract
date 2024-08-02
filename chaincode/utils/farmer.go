@@ -41,13 +41,6 @@ func FarmerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
 		},
 	}
 
-	if input.Skip > 0 {
-		selector["skip"] = input.Skip
-	}
-	if input.Limit > 0 {
-		selector["limit"] = input.Limit
-	}
-
 	getString, err := json.Marshal(selector)
 	if err != nil {
 		fmt.Printf("Error marshalling filter to JSON: %v\n", err)
@@ -55,7 +48,23 @@ func FarmerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
 		fmt.Printf("farmer filter: %s\n", getString)
 	}
 
-	queryFarmer, _, err := ctx.GetStub().GetQueryResultWithPagination(string(getString), int32(input.Limit), "")
+	total, err := CountTotalResults(ctx, string(getString))
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if input.Skip > 0 {
+		selector["skip"] = input.Skip
+	}
+	if input.Limit > 0 {
+		selector["limit"] = input.Limit
+	}
+
+	queryFarmerString, err := json.Marshal(selector)
+	if err != nil {
+		fmt.Printf("Error marshalling filter to JSON: %v\n", err)
+	}
+	queryFarmer, _, err := ctx.GetStub().GetQueryResultWithPagination(string(queryFarmerString), int32(input.Limit), "")
 	if err != nil {
 		return nil, 0, err
 	}
@@ -81,22 +90,6 @@ func FarmerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
 
 		dataFarmers = append(dataFarmers, &dataF)
 	}
-
-	resultsIterator, err := ctx.GetStub().GetQueryResult(string(getString))
-    if err != nil {
-        return nil, 0, err
-    }
-    defer resultsIterator.Close()
-
-
-    total := 0
-    for resultsIterator.HasNext() {
-        _, err := resultsIterator.Next()
-        if err != nil {
-            return nil, 0, err
-        }
-        total++
-    }
 
 	return dataFarmers, total, nil
 }

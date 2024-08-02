@@ -32,13 +32,6 @@ func NectecStaffFetchResultsWithPagination(ctx contractapi.TransactionContextInt
 		},
 	}
 
-	if input.Skip > 0 {
-        selector["skip"] = input.Skip
-    }
-    if input.Limit > 0 {
-        selector["limit"] = input.Limit
-    }
-
 	getStringNstda, err := json.Marshal(selector)
 	if err != nil {
 		return nil, 0, err
@@ -46,6 +39,19 @@ func NectecStaffFetchResultsWithPagination(ctx contractapi.TransactionContextInt
 		fmt.Printf("staff query filter: %s\n", getStringNstda)
 	}
 
+	if input.Skip > 0 {
+        selector["skip"] = input.Skip
+    }
+    if input.Limit > 0 {
+        selector["limit"] = input.Limit
+    }
+
+	getQueryString, err := json.Marshal(selector)
+	if err != nil {
+		return nil, 0, err
+	} else {
+		fmt.Printf("staff query filter: %s\n", getQueryString)
+	}
 	queryNstda, _, err := ctx.GetStub().GetQueryResultWithPagination(string(getStringNstda), int32(input.Limit), "")
 	if err != nil {
 		return nil, 0, err
