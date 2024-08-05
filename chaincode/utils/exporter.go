@@ -22,7 +22,7 @@ func ExporterSetFilter(input *models.ExporterFilterGetAll) map[string]interface{
 
     if input.District != nil {
         filter["plantTypeDetail.district"] = map[string]interface{}{
-            "$regex": input.Province,
+            "$regex": input.District,
         }
     }
 
