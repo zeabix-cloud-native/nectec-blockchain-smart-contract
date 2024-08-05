@@ -15,11 +15,15 @@ func ExporterSetFilter(input *models.ExporterFilterGetAll) map[string]interface{
     filter["docType"] = "exporter"
 
     if input.Province != nil {
-        filter["province"] = *input.Province
+        filter["plantTypeDetail.province"] = map[string]interface{}{
+            "$regex": input.Province,
+        }
     }
 
     if input.District != nil {
-        filter["district"] = *input.District
+        filter["plantTypeDetail.district"] = map[string]interface{}{
+            "$regex": input.Province,
+        }
     }
 
     if input.CreatedAtFrom != nil && input.CreatedAtTo != nil {
