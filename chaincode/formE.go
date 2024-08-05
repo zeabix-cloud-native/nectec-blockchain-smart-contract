@@ -50,6 +50,7 @@ func (s *SmartContract) CreateFormE(ctx contractapi.TransactionContextInterface,
 }
 
 func (s *SmartContract) QueryFormEWithPagination(ctx contractapi.TransactionContextInterface, filterParams string) (*models.TransactionFormEResponse, error) {
+    const offset = 7 // UTC+7
 	var filters models.FormEFilterParams
 	err := json.Unmarshal([]byte(filterParams), &filters)
 	if err != nil {
@@ -80,10 +81,37 @@ func (s *SmartContract) QueryFormEWithPagination(ctx contractapi.TransactionCont
 		selector["requestType"] = filters.RequestType
 	}
 
-	if filters.StartDate != "" && filters.EndDate != "" {
-		selector["createdAt"] = map[string]interface{}{
-			"$gte": filters.StartDate,
-			"$lte": filters.EndDate,
+	if filters.StartDate != nil && filters.EndDate != nil {
+		fromDate, err1 := utils.FormatDate(*filters.StartDate, false, offset)
+		toDate, err2 := utils.FormatDate(*filters.EndDate, true, offset)
+
+		if err1 == nil && err2 == nil {
+			selector["createdAt"] = map[string]interface{}{
+				"$gte": fromDate,
+				"$lte": toDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err1, err2)
+		}
+	} else if (filters.StartDate != nil) {
+		fromDate, err1 := utils.FormatDate(*filters.StartDate, false, offset)
+
+		if err1 == nil {
+			selector["createdAt"] = map[string]interface{}{
+				"$gte": fromDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err1)
+		}
+	} else if (filters.EndDate != nil) {
+		toDate, err2 := utils.FormatDate(*filters.EndDate, true, offset)
+
+		if err2 == nil {
+			selector["createdAt"] = map[string]interface{}{
+				"$lte": toDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err2)
 		}
 	}
 

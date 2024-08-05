@@ -71,8 +71,8 @@ type FormEFilterParams struct {
 	ExportNumber     		   string  `json:"exportNumber"`
 	RequestType                string  `json:"requestType"`
 	LotNumber         		   string  `json:"lotNumber"`
-	StartDate   			   string  `json:"startDate"`
-	EndDate                    string  `json:"endDate"`
+	StartDate   			   *string  `json:"startDate"`
+	EndDate                    *string  `json:"endDate"`
 	Status                     string  `json:"status"`
 	Skip                       int     `json:"skip"`
 	Limit                      int     `json:"limit"`

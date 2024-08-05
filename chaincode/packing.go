@@ -59,6 +59,7 @@ func (s *SmartContract) CreatePacking(
 		District:       input.District,
 		Gmp:            input.Gmp,
 		Gap:            input.Gap,
+		DisplayCertId:  input.DisplayCertId,
 		ProcessStatus:  input.ProcessStatus,
 		SellingStep:  	input.SellingStep,
 		Owner:          clientIDPacking,

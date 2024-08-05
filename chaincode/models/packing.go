@@ -16,6 +16,7 @@ type TransactionPacking struct {
 	Gmp            string    `json:"gmp"`
 	PackingHouseName            string    `json:"packingHouseName"`
 	Gap            string    `json:"gap"` // รหัสซื้อขาย
+	DisplayCertId     string    `json:"displayCertId"`
 	ProcessStatus  int       `json:"processStatus"`
 	SellingStep    int    `json:"sellingStep"`
 	Owner          string    `json:"owner"`
@@ -64,6 +65,7 @@ type PackingTransactionResponse struct {
 	Gmp           						 string    `json:"gmp"`
 	PackingHouseName           string    `json:"packingHouseName"`
 	Gap           string    `json:"gap"`
+	DisplayCertId     string    `json:"displayCertId"`
 	CancelReason           string    `json:"cancelReason"`
 	ProcessStatus int       `json:"processStatus"`
 	TotalSold        float32   `json:"totalSold"`

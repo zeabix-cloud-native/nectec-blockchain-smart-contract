@@ -141,7 +141,7 @@ func (s *SmartContract) GetPackagingGmp(ctx contractapi.TransactionContextInterf
     defer resultsIterator.Close()
 
     if !resultsIterator.HasNext() {
-        return models.TransactionGmp{}, fmt.Errorf("the GMP for asset %s does not exist", id)
+        return models.TransactionGmp{}, nil
     }
 
     queryResponse, err := resultsIterator.Next()
@@ -159,6 +159,7 @@ func (s *SmartContract) GetPackagingGmp(ctx contractapi.TransactionContextInterf
 }
 
 func (s *SmartContract) QueryPackagingWithPagination(ctx contractapi.TransactionContextInterface, filterParams string) (*models.TransactionPackagingResponse, error) {
+    const offset = 7 // UTC+7
 	var filters models.PackagingFilterParams
 	err := json.Unmarshal([]byte(filterParams), &filters)
 	if err != nil {
@@ -181,10 +182,38 @@ func (s *SmartContract) QueryPackagingWithPagination(ctx contractapi.Transaction
 	if filters.Gap != "" {
 		selector["gap"] = filters.Gap
 	}
-	if filters.StartDate != "" && filters.EndDate != "" {
-		selector["createdAt"] = map[string]interface{}{
-			"$gte": filters.StartDate,
-			"$lte": filters.EndDate,
+
+	if filters.StartDate != nil && filters.EndDate != nil {
+		fromDate, err1 := utils.FormatDate(*filters.StartDate, false, offset)
+		toDate, err2 := utils.FormatDate(*filters.EndDate, true, offset)
+
+		if err1 == nil && err2 == nil {
+			selector["createdAt"] = map[string]interface{}{
+				"$gte": fromDate,
+				"$lte": toDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err1, err2)
+		}
+	} else if (filters.StartDate != nil) {
+		fromDate, err1 := utils.FormatDate(*filters.StartDate, false, offset)
+
+		if err1 == nil {
+			selector["createdAt"] = map[string]interface{}{
+				"$gte": fromDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err1)
+		}
+	} else if (filters.EndDate != nil) {
+		toDate, err2 := utils.FormatDate(*filters.EndDate, true, offset)
+
+		if err2 == nil {
+			selector["createdAt"] = map[string]interface{}{
+				"$lte": toDate,
+			}
+		} else {
+			fmt.Printf("Error formatting issue dates: %v, %v\n", err2)
 		}
 	}
 

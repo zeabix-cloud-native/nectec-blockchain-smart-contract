@@ -44,8 +44,8 @@ type PackagingFilterParams struct {
 	BoxId 				       string    `json:"boxId"`
 	Gtin13 				       string    `json:"gtin13"`
 	Gap 				       string    `json:"gap"`
-	StartDate   			   string 	 `json:"startDate"`
-	EndDate                    string 	 `json:"endDate"`
+	StartDate   			   *string 	 `json:"startDate"`
+	EndDate                    *string 	 `json:"endDate"`
 	Skip                       int    	 `json:"skip"`
 	Limit                      int    	 `json:"limit"`
 }
