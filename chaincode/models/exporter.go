@@ -7,6 +7,7 @@ type TransactionExporter struct {
 	PlantType     string    `json:"plantType"`
 	OrgName   string    `json:"orgName"`
 	PlantTypeDetail PlantTypeModel `json:"plantTypeDetail"`
+	IsCanDelete bool       `json:"isCanDelete"`
 	DocType   DocType   `json:"docType"`
 	UpdatedAt string `json:"updatedAt"`
 	CreatedAt string `json:"createdAt"`

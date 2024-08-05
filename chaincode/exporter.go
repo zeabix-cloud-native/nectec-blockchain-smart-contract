@@ -266,6 +266,30 @@ func (s *SmartContract) ReadExporter(ctx contractapi.TransactionContextInterface
 		return nil, err
 	}
 
+	asset.IsCanDelete = true
+
+	queryStr := fmt.Sprintf(`{
+		"selector": {
+			"docType": "formE",
+			"createdById": "%s"
+		},
+		"use_index": [
+			"_design/index-CreatedAt",
+			"index-CreatedAt"
+		]
+	}`, asset.Id)
+
+	salesResultsIterator, err := ctx.GetStub().GetQueryResult(queryStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query related sales: %v", err)
+	}
+	defer salesResultsIterator.Close()
+
+	// If there are any related sales, set isCanDelete to false
+	if salesResultsIterator.HasNext() {
+		asset.IsCanDelete = false
+	}
+
 	return &asset, nil
 }
 
