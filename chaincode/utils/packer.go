@@ -14,6 +14,10 @@ func PackerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
 
 	selector := map[string]interface{}{
         "selector": filter,
+		"use_index": []string{
+            "_design/index-DocType",
+            "index-DocType",
+        },
     }
 
 	if search != nil && *search != "" {

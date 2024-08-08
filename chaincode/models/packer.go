@@ -9,6 +9,7 @@ type TransactionPacker struct {
 	PackingHouseName           string    `json:"packingHouseName"`
 	PackingHouseRegisterNumber string    `json:"packingHouseRegisterNumber"`
 	IsCanExport  bool  `json:"isCanExport"`
+	IsCanDelete  bool  `json:"isCanDelete"`
 	PackerGmp *PackerGmp `json:"packerGmp"`
 	UpdatedAt string `json:"updatedAt"`
 	CreatedAt string `json:"createdAt"`
@@ -44,6 +45,7 @@ type PackerTransactionResponse struct {
 	CertId    string    `json:"certId"`
 	UserId    string    `json:"userId"`
 	IsCanExport   			   bool  `json:"isCanExport"`
+	IsCanDelete   			   bool  `json:"isCanDelete"`
 	PackerGmp PackerGmp `json:"packerGmp"`
 	UpdatedAt string `json:"updatedAt"`
 	CreatedAt string `json:"createdAt"`

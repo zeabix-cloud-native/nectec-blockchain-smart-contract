@@ -1,0 +1,8 @@
+{
+  "index": {
+    "fields": ["docType", "packerId"]
+  },
+  "ddoc": "index-DocTypePackerId",
+  "name": "index-DocTypePackerId",
+  "type": "json"
+}

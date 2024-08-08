@@ -157,6 +157,10 @@ func GapFetchResultsWithPagination(ctx contractapi.TransactionContextInterface, 
 		selector["limit"] = input.Limit
 	}
 
+	selector["sort"] = []map[string]string {
+    	{"createdAt": "desc"},
+	}
+
 	queryString, err := json.Marshal(selector)
 	if err != nil {
 		return nil, err

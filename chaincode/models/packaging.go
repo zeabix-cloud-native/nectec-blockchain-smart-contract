@@ -5,6 +5,7 @@ type TransactionPackaging struct {
 	ContainerId 			   string    `json:"containerId"`
 	ExportId 				   string    `json:"exportId"`
 	LotNumber 				   string    `json:"lotNumber"`
+	CreatedById 			   string    `json:"createdById"`
 	BoxId 				       string    `json:"boxId"`
 	Gap 				       string    `json:"gap"`
 	Gmp 				       string    `json:"gmp"`
@@ -44,6 +45,7 @@ type PackagingFilterParams struct {
 	BoxId 				       string    `json:"boxId"`
 	Gtin13 				       string    `json:"gtin13"`
 	Gap 				       string    `json:"gap"`
+	CreatedById   			   string 	 `json:"createdById"`
 	StartDate   			   *string 	 `json:"startDate"`
 	EndDate                    *string 	 `json:"endDate"`
 	Skip                       int    	 `json:"skip"`

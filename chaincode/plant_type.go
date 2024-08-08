@@ -101,6 +101,32 @@ func (s *SmartContract) ReadPlanType(ctx contractapi.TransactionContextInterface
 		return nil, err
 	}
 
+	asset.IsCanDelete = true
+
+	if (asset.ExporterId != "") {
+		queryStr := fmt.Sprintf(`{
+			"selector": {
+				"docType": "formE",
+				"createdById": "%s"
+			},
+			"use_index": [
+				"_design/index-CreatedAt",
+				"index-CreatedAt"
+			]
+		}`, asset.ExporterId)
+
+		salesResultsIterator, err := ctx.GetStub().GetQueryResult(queryStr)
+		if err != nil {
+			return nil, fmt.Errorf("failed to query related sales: %v", err)
+		}
+		defer salesResultsIterator.Close()
+
+		// If there are any related sales, set isCanDelete to false
+		if salesResultsIterator.HasNext() {
+			asset.IsCanDelete = false
+		}
+	}
+
 	return &asset, nil
 }
 
@@ -144,6 +170,24 @@ func (s *SmartContract) QueryPlanTypeWithPagination(ctx contractapi.TransactionC
 	if filters.PlantType != "" {
 		selector["plantType"] = filters.PlantType
 	}
+
+	if filters.Province != nil {
+        selector["province"] = map[string]interface{}{
+            "$regex": filters.Province,
+        }
+    }
+
+    if filters.District != nil {
+        selector["district"] = map[string]interface{}{
+            "$regex": filters.District,
+        }
+    }
+
+	if filters.Search != nil {
+        selector["plantType"] = map[string]interface{}{
+            "$regex": filters.Search,
+        }
+    }
 
 	if filters.CreatedAtFrom != nil && filters.CreatedAtTo != nil {
 		fromDate, err1 := utils.FormatDate(*filters.CreatedAtFrom, false, offset)
@@ -221,38 +265,27 @@ func (s *SmartContract) QueryPlanTypeWithPagination(ctx contractapi.TransactionC
             "index-CreatedAt",
         },
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal count query string: %v", err)
 	}
 
 	// Execute the count query
-	countResultsIterator, err := ctx.GetStub().GetQueryResult(string(countQueryString))
+	total, err := utils.CountTotalResults(ctx, string(countQueryString))
 	if err != nil {
-		return nil, fmt.Errorf("failed to get count query result: %v", err)
-	}
-	defer countResultsIterator.Close()
-
-	// Count the total number of records
-	var totalCount int
-	for countResultsIterator.HasNext() {
-		_, err := countResultsIterator.Next()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get next count query result: %v", err)
-		}
-		totalCount++
+		return nil, err
 	}
 
 	// If no records are found, return an empty response
-	if totalCount == 0 {
+	if total == 0 {
 		return &models.PlantTypeResponse{
 			Data:  []*models.PlantTypeModel{},
-			Total: totalCount,
+			Total: total,
 		}, nil
 	}
 
-	// Create query string for paginated results
-	queryString, err := json.Marshal(map[string]interface{}{
+
+
+	query := map[string]interface{}{
 		"selector": selector,
 		"sort": []map[string]string{
 			{"createdAt": "desc"},
@@ -261,9 +294,19 @@ func (s *SmartContract) QueryPlanTypeWithPagination(ctx contractapi.TransactionC
             "_design/index-CreatedAt",
             "index-CreatedAt",
         },
-	})
+	}
 
-	fmt.Printf("Packaging query %v", queryString)
+	if filters.Skip > 0 {
+		query["skip"] = filters.Skip
+	}
+	if filters.Limit > 0 {
+		query["limit"] = filters.Limit
+	}
+
+	// Create query string for paginated results
+	queryString, err := json.Marshal(query)
+
+	fmt.Printf("PlantType query %v", queryString)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal query string: %v", err)
@@ -291,9 +334,37 @@ func (s *SmartContract) QueryPlanTypeWithPagination(ctx contractapi.TransactionC
 		assets = append(assets, &asset)
 	}
 
+	for _, asset := range assets {
+		asset.IsCanDelete = true
+
+		if (asset.ExporterId != "") {
+			queryStr := fmt.Sprintf(`{
+				"selector": {
+					"docType": "formE",
+					"createdById": "%s"
+				},
+				"use_index": [
+					"_design/index-CreatedAt",
+					"index-CreatedAt"
+				]
+			}`, asset.ExporterId)
+	
+			salesResultsIterator, err := ctx.GetStub().GetQueryResult(queryStr)
+			if err != nil {
+				return nil, fmt.Errorf("failed to query related sales: %v", err)
+			}
+			defer salesResultsIterator.Close()
+	
+			// If there are any related sales, set isCanDelete to false
+			if salesResultsIterator.HasNext() {
+				asset.IsCanDelete = false
+			}
+		}
+	}
+
 	return &models.PlantTypeResponse{
 		Data:  assets,
-		Total: totalCount,
+		Total: total,
 	}, nil
 }
 

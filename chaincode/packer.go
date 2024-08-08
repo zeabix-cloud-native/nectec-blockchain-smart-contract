@@ -45,6 +45,7 @@ func (s *SmartContract) CreatePacker(
 		CertId:    input.CertId,
 		UserId:    input.UserId,
 		IsCanExport: input.IsCanExport,
+		IsCanDelete: true,
 		PackingHouseName: input.PackingHouseName,
 		PackingHouseRegisterNumber: input.PackingHouseRegisterNumber,
 		Owner:     clientID,
@@ -279,13 +280,16 @@ func (s *SmartContract) GetAllPacker(ctx contractapi.TransactionContextInterface
         return t1.After(t2)
     })
 
-    // Attach related GMP documents
+    // Attach related GMP documents and check packer can delete
     for _, packer := range arrPacker {
+		packer.IsCanDelete = true
+
         queryString := fmt.Sprintf(`{
             "selector": {
                 "docType": "gmp",
                 "packerId": "%s"
-            }
+            },
+			"use_index": ["_design/index-DocTypePackerId", "index-DocTypePackerId"]
         }`, packer.Id)
 
         resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
@@ -309,6 +313,46 @@ func (s *SmartContract) GetAllPacker(ctx contractapi.TransactionContextInterface
             packer.PackerGmp = gmpDoc
         }
     }
+
+    // for _, packer := range arrPacker {
+	// 	packer.IsCanDelete = true
+
+    	// Check is this packer can delete
+		// packerSellingQuery := fmt.Sprintf(`{
+		// 	"selector": {
+		// 		"docType": "packing",
+		// 		"packerId": "%s"
+		// 	},
+		// 	"use_index": ["_design/index-DocTypePackerId", "index-DocTypePackerId"],
+		// 	"limit": 1
+		// }`, packer.Id)
+		
+		// packerSellingIterator, err := ctx.GetStub().GetQueryResult(packerSellingQuery)
+		// if err != nil {
+		// 	return nil, fmt.Errorf("failed to query related packer selling documents: %v", err)
+		// }
+		// defer packerSellingIterator.Close()
+
+		// for packerSellingIterator.HasNext() {
+		// 	packer.IsCanDelete = false
+        // }
+		// packerFormEQuery := fmt.Sprintf(`{
+        //     "selector": {
+        //         "docType": "formE",
+        //         "createdById": "%s"
+        //     },
+		// 	"use_index": ["_design/index-DocTypeCreatedById", "index-DocTypeCreatedById"]
+        // }`, packer.Id)
+		// packerFormEIterator, err := ctx.GetStub().GetQueryResult(packerFormEQuery)
+		// if err != nil {
+        //     return nil, fmt.Errorf("failed to query related packer selling documents: %v", err)
+        // }
+		// defer packerFormEIterator.Close()
+
+		// for packerFormEIterator.HasNext() {
+		// 	packer.IsCanDelete = false
+        // }
+	// }
 
     if len(arrPacker) == 0 {
         arrPacker = []*models.PackerTransactionResponse{}
@@ -400,6 +444,7 @@ func (s *SmartContract) CreatePackerCsv(
 			CertId:    input.CertId,
 			UserId:    input.UserId,
 			IsCanExport: input.IsCanExport,
+			IsCanDelete: true,
 			PackingHouseName: input.PackingHouseName,
 			PackingHouseRegisterNumber: input.PackingHouseRegisterNumber,
 			Owner:     clientID,
