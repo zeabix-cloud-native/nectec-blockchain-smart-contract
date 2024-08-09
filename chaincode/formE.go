@@ -144,32 +144,28 @@ func (s *SmartContract) QueryFormEWithPagination(ctx contractapi.TransactionCont
 	fmt.Printf("Count query string: %s\n", string(countQueryString))
 
 	// Execute the count query
-	countResultsIterator, err := ctx.GetStub().GetQueryResult(string(countQueryString))
+	total, err := utils.CountTotalResults(ctx, string(countQueryString))
 	if err != nil {
-		return nil, fmt.Errorf("failed to get count query result: %v", err)
+		return nil, err
 	}
-	defer countResultsIterator.Close()
 
 	// Count the total number of records
-	var totalCount int
-	for countResultsIterator.HasNext() {
-		_, err := countResultsIterator.Next()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get next count query result: %v", err)
-		}
-		totalCount++
-	}
-
-	// If no records are found, return an empty response
-	if totalCount == 0 {
+	if total == 0 {
 		return &models.TransactionFormEResponse{
 			Data:  []*models.TransactionFormE{},
-			Total: totalCount,
+			Total: total,
 		}, nil
 	}
 
-	// Create query string for paginated results
-	queryString, err := json.Marshal(map[string]interface{}{
+	// If no records are found, return an empty response
+	if total == 0 {
+		return &models.TransactionFormEResponse{
+			Data:  []*models.TransactionFormE{},
+			Total: total,
+		}, nil
+	}
+
+	query := map[string]interface{}{
 		"selector": selector,
 		"sort": []map[string]string{
 			{"createdAt": "desc"},
@@ -178,7 +174,17 @@ func (s *SmartContract) QueryFormEWithPagination(ctx contractapi.TransactionCont
 			"_design/index-CreatedAt",
 			"index-CreatedAt",
 		},
-	})
+	}
+
+	if filters.Skip > 0 {
+		query["skip"] = filters.Skip
+	}
+	if filters.Limit > 0 {
+		query["limit"] = filters.Limit
+	}
+
+	// Create query string for paginated results
+	queryString, err := json.Marshal(query)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal query string: %v", err)
@@ -211,7 +217,7 @@ func (s *SmartContract) QueryFormEWithPagination(ctx contractapi.TransactionCont
 
 	return &models.TransactionFormEResponse{
 		Data:  assets,
-		Total: totalCount,
+		Total: total,
 	}, nil
 }
 
