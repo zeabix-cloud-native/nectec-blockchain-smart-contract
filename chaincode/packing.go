@@ -214,6 +214,7 @@ func (s *SmartContract) GetAllPacking(ctx contractapi.TransactionContextInterfac
 						{"gmp": map[string]interface{}{"$regex": searchTerm}},
 						{"packingHouseName": map[string]interface{}{"$regex": searchTerm}},
 						{"gap": map[string]interface{}{"$regex": searchTerm}},
+						{"displayCertId": map[string]interface{}{"$regex": searchTerm}},
 					},
 				},
 			},
