@@ -137,12 +137,65 @@ func (s *SmartContract) DeleteGap(ctx contractapi.TransactionContextInterface, i
 	assetGap, err := s.ReadGap(ctx, id)
 	utils.HandleError(err)
 
-	// clientIDGap, err := utils.GetIdentity(ctx)
-	// utils.HandleError(err)
 
-	// if clientIDGap != assetGap.Owner {
-	// 	return utils.ReturnError(utils.UNAUTHORIZE)
-	// }
+	if (assetGap.FarmerID != "") {
+		queryFarmer := fmt.Sprintf(`{"selector":{"docType":"farmer","id":"%s"}}`, assetGap.FarmerID)
+		fmt.Printf("[DeleteGap] queryFarmer %v \n", queryFarmer);
+		resultsIteratorFarmer, err := ctx.GetStub().GetQueryResult(queryFarmer)
+		if err != nil {
+			return fmt.Errorf("error querying chaincode: %v", err)
+		}
+		defer resultsIteratorFarmer.Close()
+
+		if resultsIteratorFarmer.HasNext() {
+			queryResponse, err := resultsIteratorFarmer.Next()
+			if err != nil {
+				return fmt.Errorf("error iterating query results: %v", err)
+			}
+
+			var farmer *models.TransactionFarmer
+			err = json.Unmarshal(queryResponse.Value, &farmer)
+			if err != nil {
+				return fmt.Errorf("error unmarshalling JSON: %v", err)
+			}
+			fmt.Printf("[DeleteGap] farmer %v \n", farmer);
+
+			var updatedFarmerGaps []models.FarmerGap
+
+			if farmer.FarmerGaps != nil && len(farmer.FarmerGaps) > 0 {
+				for _, item := range farmer.FarmerGaps {
+					if item.CertID != assetGap.CertID {
+						updatedFarmerGaps = append(updatedFarmerGaps, item)
+					}
+				}
+				farmer.FarmerGaps = updatedFarmerGaps
+			} else {
+				farmer.FarmerGaps = []models.FarmerGap{}
+			}
+			
+			if (farmer.FarmerGaps != nil && len(farmer.FarmerGaps) > 0) {
+				for _, item := range farmer.FarmerGaps {
+					if (item.CertID != assetGap.CertID) {
+						farmer.FarmerGaps = append(farmer.FarmerGaps, item);
+					}
+				}
+			} 
+
+			if len(updatedFarmerGaps) == 0 {
+				fmt.Println("[DeleteGap] No gaps remaining after deletion")
+			}
+
+			farmer.FarmerGaps = updatedFarmerGaps
+
+			assetJSON, err := json.Marshal(farmer);
+			fmt.Printf("[DeleteGap] assetJSON %v \n", farmer);
+			if err != nil {
+				return fmt.Errorf("error marshalling JSON: %v", err)
+			}
+			ctx.GetStub().PutState(farmer.Id, assetJSON);
+			fmt.Printf("Update farmer from delete gap successfully \n");
+		}
+	}
 
 	return ctx.GetStub().DelState(assetGap.Id)
 }
