@@ -49,6 +49,7 @@ func (s *SmartContract) CreateExporter(
 		Id:        input.Id,
 		CertId:    input.CertId,
 		PlantType:    input.PlantType,
+		PlantTypeDetail: input.PlantTypeDetail,
 		Owner:     clientID,
 		OrgName:   orgName,
 		UpdatedAt: timestamp,
@@ -58,6 +59,7 @@ func (s *SmartContract) CreateExporter(
 	assetJSON, err := json.Marshal(asset)
 	utils.HandleError(err)
 
+	fmt.Printf("[CreateExporter] assetJson %v \n", asset.PlantType)
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
