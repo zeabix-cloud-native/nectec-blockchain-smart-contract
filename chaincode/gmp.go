@@ -57,6 +57,52 @@ func (s *SmartContract) CreateGMP(
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
 
+func (s *SmartContract) ClearGmpPacker(ctx contractapi.TransactionContextInterface, packerId string) error {
+	queryGmp := fmt.Sprintf(`{
+		"selector": {
+			"docType": "gmp",
+			"packerId": "%s"
+		},
+		"sort": [
+			{"createdAt": "desc"}
+		],
+		"use_index": ["_design/index-packing-gmp-createdAt", "index-packing-gmp-createdAt"]
+	}`, packerId);
+
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryGmp)
+    if err != nil {
+        return fmt.Errorf("failed to execute query: %v", err)
+    }
+    defer resultsIterator.Close()
+
+	for resultsIterator.HasNext() {
+        queryResult, err := resultsIterator.Next()
+        if err != nil {
+            return fmt.Errorf("failed to get next result: %v", err)
+        }
+
+        var gmp models.TransactionGmp
+        err = json.Unmarshal(queryResult.Value, &gmp)
+        if err != nil {
+            return fmt.Errorf("failed to unmarshal GMP: %v", err)
+        }
+
+		gmp.PackerId = ""
+
+        updatedGmpJSON, err := json.Marshal(gmp)
+        if err != nil {
+            return fmt.Errorf("failed to marshal updated GMP: %v", err)
+        }
+
+        err = ctx.GetStub().PutState(gmp.Id, updatedGmpJSON)
+        if err != nil {
+            return fmt.Errorf("failed to update GMP in world state: %v", err)
+        }
+    }
+
+    return nil
+}
+
 func (s *SmartContract) UpdateGmp(ctx contractapi.TransactionContextInterface, args string) error {
 
 	entityGmp := models.TransactionGmp{}
@@ -362,8 +408,7 @@ func (s *SmartContract) UpdateMultipleGmp(
 		if err != nil {
 			return fmt.Errorf("failed to unmarshal existing asset: %v", err)
 		}
-		// timestamp := utils.GenerateTimestamp()
-		
+
 		existingAsset.Id = input.Id
 		existingAsset.PackerId = input.PackerId
 		existingAsset.PackingHouseRegisterNumber = input.PackingHouseRegisterNumber
@@ -384,6 +429,46 @@ func (s *SmartContract) UpdateMultipleGmp(
 		}
 		
 		fmt.Printf("Asset %s updated successfully\n", input.Id)
+
+		//Update packer gmp
+		queryPacker := fmt.Sprintf(`{
+			"selector": {
+				"docType": "packer",
+				"id": "%s"
+			}
+		}`, input.PackerId)
+
+		resultsIterator, err := ctx.GetStub().GetQueryResult(queryPacker)
+		if err != nil {
+			return fmt.Errorf("[UpdateMultipleGmp] failed to query related packer: %v", err)
+		}
+		defer resultsIterator.Close()
+
+		for resultsIterator.HasNext() {
+			queryResponse, err := resultsIterator.Next()
+			if err != nil {
+				return err
+			}
+
+			var packer models.TransactionPacker
+			err = json.Unmarshal(queryResponse.Value, &packer)
+			if err != nil {
+				return err
+			}
+
+			packer.PackingHouseName = input.PackingHouseName
+			packer.PackingHouseRegisterNumber = input.PackingHouseRegisterNumber
+
+			updatedPackerJSON, err := json.Marshal(packer)
+			if err != nil {
+				return fmt.Errorf("failed to marshal updated asset: %v", err)
+			}
+
+			err = ctx.GetStub().PutState(packer.Id, updatedPackerJSON)
+			if err != nil {
+				return fmt.Errorf("[UpdateMultipleGmp] failed to update packer asset in world state: %v", err)
+			}
+		}
 	}
 	
 	return nil

@@ -179,11 +179,23 @@ func (s *SmartContract) GetPackerByPackerId(ctx contractapi.TransactionContextIn
 	asset.IsCanDelete = true
 
 	salesQueryString := fmt.Sprintf(`{
-		"selector": {
-			"docType": "packing",
-			"gmp": "%s"
-		}
-	}`, asset.PackingHouseRegisterNumber)
+        "selector": {
+            "$or": [
+                {
+                    "docType": "packing",
+                    "packerId": "%s"
+                },
+                {
+                    "docType": "formE",
+                    "createdById": "%s"
+                },
+                {
+                    "docType": "packaging",
+                    "createdById": "%s"
+                }
+            ]
+        }
+    }`, asset.PackingHouseRegisterNumber, asset.Id, asset.Id)
 
 	fmt.Printf("salesQueryString %v", salesQueryString)
 
