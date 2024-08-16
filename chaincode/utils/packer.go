@@ -14,6 +14,9 @@ func PackerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
 
 	selector := map[string]interface{}{
         "selector": filter,
+		"sort": []map[string]string{
+			{"createdAt": "desc"},
+		},
 		"use_index": []string{
             "_design/index-DocType",
             "index-DocType",

@@ -3,8 +3,6 @@ package chaincode
 import (
 	"encoding/json"
 	"fmt"
-	"sort"
-	"time"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/zeabix-cloud-native/nectec-blockchain-smart-contract/chaincode/models"
@@ -295,16 +293,6 @@ func (s *SmartContract) GetAllPacker(ctx contractapi.TransactionContextInterface
     if err != nil {
         return nil, err
     }
-
-	sort.Slice(arrPacker, func(i, j int) bool {
-        t1, err1 := time.Parse(time.RFC3339, arrPacker[i].CreatedAt)
-        t2, err2 := time.Parse(time.RFC3339, arrPacker[j].CreatedAt)
-        if err1 != nil || err2 != nil {
-            fmt.Println("Error parsing time:", err1, err2)
-            return false
-        }
-        return t1.After(t2)
-    })
 
     // Attach related GMP documents and check packer can delete
     for _, packer := range arrPacker {
