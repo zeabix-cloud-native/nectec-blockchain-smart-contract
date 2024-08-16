@@ -29,6 +29,7 @@ func PackerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
                     "$or": []map[string]interface{}{
                         {"packingHouseRegisterNumber": map[string]interface{}{"$regex": searchTerm}},
                         {"packingHouseName": map[string]interface{}{"$regex": searchTerm}},
+                        {"certId": map[string]interface{}{"$regex": searchTerm}},
                     },
                 },
             },
@@ -56,11 +57,18 @@ func PackerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
 		total++
 	}
 
-	if input.Skip != 0 || input.Limit != 0 {
+	// Apply pagination
+	if input.Skip > 0 {
 		selector["skip"] = input.Skip
+	}
+	if input.Limit > 0 {
 		selector["limit"] = input.Limit
 	}
 
+	getStringPacker, err = json.Marshal(selector)
+    if err != nil {
+        return nil, 0, err
+    }
 	fmt.Printf("packer filter %v", selector)
 
 	queryPacker, _, err := ctx.GetStub().GetQueryResultWithPagination(string(getStringPacker), int32(input.Limit), "")

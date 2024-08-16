@@ -41,7 +41,7 @@ func (s *SmartContract) CreatePacker(
 	// timestamp := utils.GenerateTimestamp()
 
 	asset := models.TransactionPacker{
-		Id:        input.Id,
+		Id:        input.UserId,
 		CertId:    input.CertId,
 		UserId:    input.UserId,
 		IsCanExport: input.IsCanExport,
@@ -100,18 +100,23 @@ func (s *SmartContract) UpdatePacker(ctx contractapi.TransactionContextInterface
 
 
 func (s *SmartContract) DeletePacker(ctx contractapi.TransactionContextInterface, id string) error {
+	assetJSON, err := ctx.GetStub().GetState(id)
+	if err != nil {
+		return fmt.Errorf("failed to read from world state or packerId: %v", err)
+	}  
+	if assetJSON == nil {
+		return fmt.Errorf("the asset %s does not exist", id)
+	}
 
-	assetPacker, err := s.ReadPacker(ctx, id)
-	utils.HandleError(err)
+	var asset models.TransactionPacker
+	err = json.Unmarshal(assetJSON, &asset)
+	if err != nil {
+		return err
+	}
 
-	// clientIDPacker, err := utils.GetIdentity(ctx)
-	// utils.HandleError(err)
+	fmt.Printf("[DeletePacker] assetPacker %v \n", asset)
 
-	// if clientIDPacker != assetPacker.Owner {
-	// 	return fmt.Errorf(utils.UNAUTHORIZE)
-	// }
-
-	return ctx.GetStub().DelState(assetPacker.Id)
+	return ctx.GetStub().DelState(asset.Id)
 }
 
 func (s *SmartContract) GetPackerByPackerId(ctx contractapi.TransactionContextInterface, packerId string) (*models.PackerByIdResponse, error) {
@@ -171,6 +176,27 @@ func (s *SmartContract) GetPackerByPackerId(ctx contractapi.TransactionContextIn
 		}
 
 		asset.PackerGmp = gmpDoc
+	}
+
+	asset.IsCanDelete = true
+
+	salesQueryString := fmt.Sprintf(`{
+		"selector": {
+			"docType": "packing",
+			"gmp": "%s"
+		}
+	}`, asset.PackingHouseRegisterNumber)
+
+	fmt.Printf("salesQueryString %v", salesQueryString)
+
+	salesResultsIterator, err := ctx.GetStub().GetQueryResult(salesQueryString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query related sales: %v", err)
+	}
+	defer salesResultsIterator.Close()
+
+	if salesResultsIterator.HasNext() {
+		asset.IsCanDelete = false
 	}
 
 	return &models.PackerByIdResponse{

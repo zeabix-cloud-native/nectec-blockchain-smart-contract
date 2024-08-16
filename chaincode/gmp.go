@@ -81,8 +81,10 @@ func (s *SmartContract) UpdateGmp(ctx contractapi.TransactionContextInterface, a
 	asset.Source = input.Source
 	asset.UpdatedAt = input.UpdatedAt
 
-	assetJSON, errG := json.Marshal(asset)
-	utils.HandleError(errG)
+	assetJSON, err := json.Marshal(asset)
+	if err != nil {
+		return fmt.Errorf("[UpdateGmp] failed to marshal asset JSON: %v", err)
+	}
 
 	return ctx.GetStub().PutState(input.Id, assetJSON)
 }
