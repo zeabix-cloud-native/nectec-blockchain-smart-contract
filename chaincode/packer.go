@@ -195,7 +195,7 @@ func (s *SmartContract) GetPackerByPackerId(ctx contractapi.TransactionContextIn
                 }
             ]
         }
-    }`, asset.PackingHouseRegisterNumber, asset.Id, asset.Id)
+    }`, asset.Id, asset.Id, asset.Id)
 
 	fmt.Printf("salesQueryString %v", salesQueryString)
 
