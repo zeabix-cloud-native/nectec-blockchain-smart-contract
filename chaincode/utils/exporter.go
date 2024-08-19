@@ -102,6 +102,9 @@ func ExporterFetchResultsWithPagination(ctx contractapi.TransactionContextInterf
 
     selector := map[string]interface{}{
         "selector": filter,
+        "sort": []map[string]string{
+			{"createdAt": "desc"},
+		},
         "use_index": []string{
 			"_design/index-CreatedAt",
 			"index-CreatedAt",
