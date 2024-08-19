@@ -1,0 +1,8 @@
+{
+  "index": {
+    "fields": [{ "order": "asc" }]
+  },
+  "ddoc": "index-Order",
+  "name": "index-Order",
+  "type": "json"
+}

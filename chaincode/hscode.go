@@ -39,6 +39,7 @@ func (s *SmartContract) CreateTransactionHscodes(ctx contractapi.TransactionCont
             Hscode:                     input.Hscode,
             Description:                input.Description,
             OrgName:                    orgNameHscode,
+			Order:                      input.Order,
 			Owner:                      clientHscode,
 			DocType:                    models.Hscode,
 			CreatedAt:  				input.CreatedAt,		
@@ -101,9 +102,12 @@ func (s *SmartContract) QueryHscodeWithPagination(ctx contractapi.TransactionCon
 	// Create query string for counting total records
 	countQueryString, err := json.Marshal(map[string]interface{}{
 		"selector": selector,
+		"sort": []map[string]string{
+			{"order": "asc"},
+		},
 		"use_index": []string{
-            "_design/index-CreatedAt",
-            "index-CreatedAt",
+            "_design/index-Order",
+            "index-Order",
         },
 	})
 
@@ -140,11 +144,11 @@ func (s *SmartContract) QueryHscodeWithPagination(ctx contractapi.TransactionCon
 	queryString, err := json.Marshal(map[string]interface{}{
 		"selector": selector,
 		"sort": []map[string]string{
-			{"createdAt": "desc"},
+			{"order": "asc"},
 		},
-        "use_index": []string{
-            "_design/index-CreatedAt",
-            "index-CreatedAt",
+		"use_index": []string{
+            "_design/index-Order",
+            "index-Order",
         },
 	})
 

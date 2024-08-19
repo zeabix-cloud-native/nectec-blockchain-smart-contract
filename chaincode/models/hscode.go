@@ -7,6 +7,7 @@ type TransactionHscode struct {
 	DocType                    DocType   `json:"docType"`
 	Owner                      string    `json:"owner"`
 	OrgName                    string    `json:"orgName"`
+	Order                      int    	 `json:"order"`
 	UpdatedAt                  string    `json:"updatedAt"`
 	CreatedAt                  string    `json:"createdAt"`
 }
