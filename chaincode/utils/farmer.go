@@ -18,8 +18,13 @@ func FarmerFetchResultsWithPagination(ctx contractapi.TransactionContextInterfac
 			{
 				"farmerGaps": map[string]interface{}{
 					"$elemMatch": map[string]interface{}{
-						"displayCertId": map[string]interface{}{ 
-							"$regex": input.Search,
+						"$or": []map[string]interface{} {
+							{"displayCertId": map[string]interface{}{ 
+								"$regex": input.Search,
+							}},
+							{"certId": map[string]interface{}{ 
+								"$regex": input.Search,
+							}},
 						},
 					},
 				},
