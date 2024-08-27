@@ -44,6 +44,7 @@ func (s *SmartContract) CreateFarmerProfile(
 		Id:        input.Id,
 		CertId:    input.CertId,
 		ProfileImg:    input.ProfileImg,
+		FarmerGaps: input.FarmerGaps,
 		Owner:     clientID,
 		OrgName:   orgName,
 		UpdatedAt: input.CreatedAt,
@@ -51,6 +52,9 @@ func (s *SmartContract) CreateFarmerProfile(
 		DocType: models.Farmer,
 	}
 	assetJSON, err := json.Marshal(asset)
+
+	fmt.Printf("Farmer payload %v \n", assetJSON)
+
 	utils.HandleError(err)
 
 	return ctx.GetStub().PutState(input.Id, assetJSON)
