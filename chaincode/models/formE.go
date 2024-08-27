@@ -58,9 +58,9 @@ type TransactionFormE struct {
 	OrgName                 string  `json:"orgName"`
 	CancelReason            string  `json:"cancelReason"`
 	CreatedById             string  `json:"createdById"`
-	Shipper                 Shipper `json:"shipper"`
-	Receiver                Receiver `json:"receiver"`
-	Invoice                 Invoice `json:"invoice"`
+	Shipper                 *Shipper `json:"shipper"`
+	Receiver                *Receiver `json:"receiver"`
+	Invoice                 *Invoice `json:"invoice"`
     DocType                 DocType  `json:"docType"`  
 }
 

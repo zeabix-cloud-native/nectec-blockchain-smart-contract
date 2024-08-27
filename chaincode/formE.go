@@ -324,19 +324,20 @@ func (s *SmartContract) GetFormEByReferenceId(ctx contractapi.TransactionContext
 
 	if !resultsFormE.HasNext() {
 		return &models.TransactionFormE{}, nil
-	}
+	} else {
+		queryResponse, err := resultsFormE.Next()
+		if err != nil {
+			return nil, fmt.Errorf("error getting next query result: %v", err)
+		}
+	
+		var asset models.TransactionFormE
+		err = json.Unmarshal(queryResponse.Value, &asset)
+		if err != nil {
+			return nil, fmt.Errorf("error unmarshalling asset JSON: %v", err)
+		}
 
-	queryResponse, err := resultsFormE.Next()
-	if err != nil {
-		return nil, fmt.Errorf("error getting next query result: %v", err)
-	}
+		return &asset, nil
 
-	var asset models.TransactionFormE
-	err = json.Unmarshal(queryResponse.Value, &asset)
-	if err != nil {
-		return nil, fmt.Errorf("error unmarshalling asset JSON: %v", err)
 	}
-
-	return &asset, nil
 }
 
